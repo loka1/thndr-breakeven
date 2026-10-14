@@ -1,0 +1,415 @@
+<title>حاسبة نقطة التعادل</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<style>
+/* Layout: one narrow column — inputs, the headline break-even price, a tick-size ladder, fee breakdown, saved trades. */
+:root{
+  --bg:#f2f5f3; --surface:#ffffff; --fg:#14211c; --muted:#5d6b65; --line:#d9e1dc;
+  --accent:#0d6e52; --accent-soft:#e0efe9; --up:#0d7a4f; --down:#b23a31; --warn:#9a6a0a;
+  --font-body:"IBM Plex Sans Arabic",system-ui,"Segoe UI",Tahoma,sans-serif;
+  --font-num:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0f1714; --surface:#16211d; --fg:#e4ece8; --muted:#93a39c; --line:#26352f;
+  --accent:#4cc39a; --accent-soft:#1a3329; --up:#52c995; --down:#ef7c72; --warn:#e2b55a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0f1714; --surface:#16211d; --fg:#e4ece8; --muted:#93a39c; --line:#26352f;
+  --accent:#4cc39a; --accent-soft:#1a3329; --up:#52c995; --down:#ef7c72; --warn:#e2b55a; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--font-body);font-size:15px;line-height:1.6;padding:0 16px}
+.wrap{max-width:640px;margin:0 auto;padding-block:24px 48px;display:flex;flex-direction:column;gap:20px}
+h1{font-size:1.5rem;margin:0;text-wrap:balance;font-weight:700}
+.sub{color:var(--muted);margin:2px 0 0;font-size:.9rem}
+.num{font-family:var(--font-num);font-variant-numeric:tabular-nums;direction:ltr;unicode-bidi:isolate}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+label{display:flex;flex-direction:column;gap:4px;font-size:.85rem;color:var(--muted);font-weight:500}
+input,select{font:inherit;color:var(--fg);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:9px 10px;width:100%;min-width:0}
+input.num{text-align:left}
+input:focus-visible,select:focus-visible,button:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.seg{display:flex;flex-wrap:wrap;gap:6px}
+.seg button{font:inherit;font-size:.85rem;border:1px solid var(--line);background:var(--bg);color:var(--fg);border-radius:999px;padding:5px 12px;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+.check{flex-direction:row;align-items:center;gap:8px;color:var(--fg);font-weight:400}
+.check input{width:auto}
+.hero{background:var(--accent-soft);border:1px solid var(--accent);border-radius:12px;padding:18px 16px;display:flex;flex-direction:column;gap:4px}
+.hero .label{font-size:.85rem;color:var(--muted)}
+.hero .big{font-size:2.4rem;font-weight:600;color:var(--accent);line-height:1.2}
+.hero .note{font-size:.88rem}
+h2{font-size:1rem;margin:0;font-weight:600}
+.tablebox{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:.9rem}
+th,td{padding:8px 6px;text-align:right;border-bottom:1px solid var(--line);white-space:nowrap}
+th{color:var(--muted);font-weight:500;font-size:.8rem}
+td.n{text-align:left}
+tr.sel td{background:var(--accent-soft)}
+.pos{color:var(--up)} .neg{color:var(--down)}
+.fees{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media (max-width:480px){.fees{grid-template-columns:1fr}}
+.fees dl{margin:0;display:grid;grid-template-columns:1fr auto;gap:2px 10px;font-size:.88rem}
+.fees dt{color:var(--muted)} .fees dd{margin:0;text-align:left}
+.fees .tot{font-weight:600;color:var(--fg);border-top:1px solid var(--line);padding-top:4px}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between}
+.btn{font:inherit;font-weight:600;border:0;border-radius:8px;padding:9px 16px;cursor:pointer;background:var(--accent);color:var(--surface)}
+.btn.ghost{background:transparent;color:var(--muted);border:1px solid var(--line);font-weight:500;padding:5px 10px;font-size:.8rem}
+.btn.danger{color:var(--down);border-color:var(--down)}
+.status{font-size:.82rem;color:var(--muted)}
+.hist{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.hist li{display:flex;gap:10px;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.hist li:last-child{border-bottom:0}
+.hist .meta{display:flex;flex-direction:column;min-width:0}
+.hist .name{font-weight:600}
+.hist .det{font-size:.82rem;color:var(--muted)}
+.hist .acts{display:flex;gap:6px}
+.empty{color:var(--muted);font-size:.9rem;margin:0}
+details summary{cursor:pointer;font-weight:600}
+details[open] summary{margin-bottom:12px}
+.small{font-size:.8rem;color:var(--muted);margin:0}
+.warn{color:var(--warn)}
+@media (prefers-reduced-motion:no-preference){.hero .big{transition:color .2s}}
+</style>
+
+<div class="wrap" dir="rtl" lang="ar">
+  <header>
+    <h1>أبيع على كام؟</h1>
+    <p class="sub">أقل سعر بيع يغطي عمولة ثاندر ورسوم البورصة المصرية في الشراء والبيع.</p>
+  </header>
+
+  <section class="panel" aria-label="بيانات الصفقة">
+    <div class="grid">
+      <label>اسم السهم (اختياري)<input id="name" type="text" placeholder="مثلاً COMI" autocomplete="off"></label>
+      <label>عدد الأسهم<input id="qty" class="num" type="number" inputmode="numeric" min="1" step="1" value="1000"></label>
+      <label>سعر الشراء (جنيه)<input id="price" class="num" type="number" inputmode="decimal" min="0" step="0.001" value="12.35"></label>
+    </div>
+    <div class="grid">
+      <label>الباقة
+        <select id="plan">
+          <option value="std">العادية (2 ج + 0.1%)</option>
+          <option value="stdmin">العادية (0.1% بحد أدنى 2 ج)</option>
+          <option value="trader">Thndr Trader (بدون عمولة)</option>
+        </select>
+      </label>
+      <label>عدد التنفيذات المتوقعة في البيع<input id="fills" class="num" type="number" inputmode="numeric" min="1" step="1" value="1"></label>
+      <label>وزن السعر (التك) المخصص<input id="tick" class="num" type="number" inputmode="decimal" min="0.001" step="0.001" value="0.05"></label>
+    </div>
+    <label class="check"><input id="t0" type="checkbox"> هبيع في نفس الجلسة (T0) — الدمغة 0.025% بدل 0.05%</label>
+  </section>
+
+  <section class="hero" aria-live="polite">
+    <span class="label">أقل سعر بيع على وزن <span id="heroTick">القرش</span></span>
+    <span class="big num" id="heroPrice">—</span>
+    <span class="note" id="heroNote"></span>
+  </section>
+
+  <section class="panel">
+    <h2>السعر حسب الوزن</h2>
+    <div class="seg" id="tickSeg" role="group" aria-label="اختار الوزن"></div>
+    <div class="tablebox">
+      <table>
+        <thead><tr><th>الوزن</th><th>أقل سعر بيع</th><th>صافي الربح عند السعر دا</th><th>الارتفاع المطلوب</th></tr></thead>
+        <tbody id="ladder"></tbody>
+      </table>
+    </div>
+    <p class="small">السعر الدقيق بدون تقريب: <span class="num" id="exact">—</span></p>
+  </section>
+
+  <section class="panel">
+    <h2>تفاصيل الرسوم</h2>
+    <div class="fees">
+      <div><p class="small" style="margin-bottom:6px">الشراء — قيمة <span class="num" id="buyVal"></span></p><dl id="buyFees"></dl></div>
+      <div><p class="small" style="margin-bottom:6px">البيع عند أقل سعر — قيمة <span class="num" id="sellVal"></span></p><dl id="sellFees"></dl></div>
+    </div>
+    <p class="small">أنت محتاج تحصّل <span class="num" id="needed"></span> ج من البيع علشان ترجع اللي دفعته.</p>
+  </section>
+
+  <section class="panel">
+    <div class="row">
+      <h2>الصفقات المحفوظة</h2>
+      <button class="btn" id="save" type="button">احفظ الصفقة</button>
+    </div>
+    <span class="status" id="status"></span>
+    <ul class="hist" id="hist"></ul>
+    <p class="empty" id="histEmpty">لسه مفيش صفقات محفوظة. اكتب البيانات فوق واضغط «احفظ الصفقة» علشان ترجعلها بعدين.</p>
+  </section>
+
+  <details class="panel">
+    <summary>نسب الرسوم (تقدر تعدّلها)</summary>
+    <div class="grid" id="rates"></div>
+    <button class="btn ghost" id="resetRates" type="button">رجّع النسب الافتراضية</button>
+    <p class="small">المصدر: صفحة رسوم ثاندر (أغسطس 2026). الرسوم بتتحسب على الشراء والبيع. رسوم الرقابة المالية حدها الأدنى 1 ج لكل تنفيذ، فلو أمر البيع اتقسم على كذا تنفيذ كل تنفيذ صغير بيزوّد حوالي 1 ج. في باقة Trader العمولة بتتخصم وترجعلك آخر اليوم، وده لأول 50 أمر في الشهر بس. الأرقام تقريبية والفاتورة في التطبيق هي المرجع.</p>
+  </details>
+</div>
+
+<script>
+const DEFAULT_RATES = {
+  thndrPct: 0.1, thndrFixed: 2,
+  egxPct: 0.01, egxMax: 5000,
+  mcdrPct: 0.01, mcdrMax: 5000,
+  fraPct: 0.005, fraMin: 1, fraMax: 250,
+  riskPct: 0.005, riskMax: 5000,
+  stampT1: 0.05, stampT0: 0.025
+};
+const RATE_LABELS = {
+  thndrPct:"عمولة ثاندر %", thndrFixed:"عمولة ثاندر ثابتة (ج)",
+  egxPct:"البورصة %", egxMax:"البورصة حد أقصى (ج)",
+  mcdrPct:"مصر للمقاصة %", mcdrMax:"المقاصة حد أقصى (ج)",
+  fraPct:"الرقابة المالية %", fraMin:"الرقابة حد أدنى (ج)", fraMax:"الرقابة حد أقصى (ج)",
+  riskPct:"صندوق حماية المستثمر %", riskMax:"الصندوق حد أقصى (ج)",
+  stampT1:"الدمغة T1/T2 %", stampT0:"الدمغة T0 %"
+};
+const TICKS = [
+  {v:0.01, name:"القرش"}, {v:0.1, name:"العشرة قروش"}, {v:1, name:"الجنيه"}
+];
+
+const $ = id => document.getElementById(id);
+let rates = {...DEFAULT_RATES};
+let selectedTick = 0.01;
+let lastResult = null;
+
+const fmt = (x, d=2) => Number.isFinite(x) ? x.toLocaleString("en-US",{minimumFractionDigits:d,maximumFractionDigits:d}) : "—";
+const decimalsOf = t => { const s = String(t); return s.includes(".") ? s.split(".")[1].length : 0; };
+const tickName = t => (TICKS.find(k => k.v === t) || {name: fmt(t, decimalsOf(t)) + " ج"}).name;
+
+const r2 = x => Math.round(x * 100 + 1e-7) / 100;
+// fills: how many executions the order splits into; the FRA minimum (1 EGP) is charged on each one.
+function fees(value, s, fills = 1) {
+  const r = rates, p = x => x / 100;
+  let thndr = 0;
+  if (s.plan === "std") thndr = r.thndrFixed + value * p(r.thndrPct);
+  else if (s.plan === "stdmin") thndr = Math.max(r.thndrFixed, value * p(r.thndrPct));
+  const egx = Math.min(value * p(r.egxPct), r.egxMax);
+  const mcdr = Math.min(value * p(r.mcdrPct), r.mcdrMax);
+  const fra = value > 0 ? Math.min(Math.max(value * p(r.fraPct), r.fraMin), r.fraMax) + (fills - 1) * r.fraMin : 0;
+  const risk = Math.min(value * p(r.riskPct), r.riskMax);
+  const stamp = value * p(s.t0 ? r.stampT0 : r.stampT1);
+  const items = [["عمولة ثاندر", r2(thndr)], ["البورصة", r2(egx)], ["مصر للمقاصة", r2(mcdr)], ["الرقابة المالية", r2(fra)], ["حماية المستثمر", r2(risk)], ["الدمغة", r2(stamp)]];
+  return {items, total: items.reduce((a, [, v]) => a + v, 0)};
+}
+
+function compute(s) {
+  const buyVal = s.qty * s.price;
+  const buyFees = fees(buyVal, s);
+  const cost = buyVal + buyFees.total;
+  const net = P => P * s.qty - fees(P * s.qty, s, s.fills).total;
+  // net() rises with price (fee rates are well under 100%), so bisect for the exact break-even.
+  let lo = 0, hi = Math.max(s.price, 0.01) * 2 + 10;
+  while (net(hi) < cost) hi *= 2;
+  for (let i = 0; i < 200; i++) { const m = (lo + hi) / 2; net(m) >= cost ? hi = m : lo = m; }
+  const exact = hi;
+  const atTick = t => {
+    const d = decimalsOf(t);
+    let n = Math.ceil(exact / t - 1e-9);
+    let P = +(n * t).toFixed(d);
+    while (net(P) < cost - 1e-9) { n++; P = +(n * t).toFixed(d); }
+    return {tick: t, price: P, profit: net(P) - cost, rise: (P / s.price - 1) * 100};
+  };
+  return {buyVal, buyFees, cost, exact, atTick, sellFeesAt: P => fees(P * s.qty, s, s.fills)};
+}
+
+function readState() {
+  return {
+    name: $("name").value.trim(),
+    qty: Math.max(0, Math.floor(+$("qty").value || 0)),
+    price: Math.max(0, +$("price").value || 0),
+    plan: $("plan").value,
+    t0: $("t0").checked,
+    fills: Math.max(1, Math.floor(+$("fills").value || 1)),
+    customTick: +$("tick").value > 0 ? +$("tick").value : 0.05
+  };
+}
+
+function renderFees(el, f) {
+  el.innerHTML = "";
+  for (const [k, v] of f.items) {
+    const dt = document.createElement("dt"); dt.textContent = k;
+    const dd = document.createElement("dd"); dd.className = "num"; dd.textContent = fmt(v);
+    el.append(dt, dd);
+  }
+  const dt = document.createElement("dt"); dt.className = "tot"; dt.textContent = "الإجمالي";
+  const dd = document.createElement("dd"); dd.className = "num tot"; dd.textContent = fmt(f.total);
+  el.append(dt, dd);
+}
+
+function render() {
+  const s = readState();
+  const ticks = [...TICKS.map(t => t.v)];
+  if (!ticks.includes(s.customTick)) ticks.push(s.customTick);
+  if (!ticks.includes(selectedTick)) selectedTick = 0.01;
+
+  const seg = $("tickSeg"); seg.innerHTML = "";
+  for (const t of ticks) {
+    const b = document.createElement("button");
+    b.type = "button"; b.textContent = tickName(t);
+    b.setAttribute("aria-pressed", String(t === selectedTick));
+    b.onclick = () => { selectedTick = t; saveSettings(); render(); };
+    seg.append(b);
+  }
+
+  if (!s.qty || !s.price) {
+    $("heroPrice").textContent = "—";
+    $("heroNote").textContent = "اكتب عدد الأسهم وسعر الشراء.";
+    $("ladder").innerHTML = ""; lastResult = null; return;
+  }
+
+  const c = compute(s);
+  const rows = ticks.map(c.atTick);
+  const sel = rows.find(r => r.tick === selectedTick);
+  lastResult = {s, c, sel};
+
+  $("heroTick").textContent = tickName(selectedTick);
+  $("heroPrice").textContent = fmt(sel.price, decimalsOf(selectedTick));
+  $("heroNote").innerHTML = "";
+  const n1 = document.createElement("span");
+  n1.textContent = `ارتفاع ${fmt(sel.rise)}% عن سعر الشراء · صافي عند السعر دا: `;
+  const n2 = document.createElement("span");
+  n2.className = "num " + (sel.profit >= 0 ? "pos" : "neg");
+  n2.textContent = (sel.profit >= 0 ? "+" : "") + fmt(sel.profit) + " ج";
+  $("heroNote").append(n1, n2);
+
+  const tb = $("ladder"); tb.innerHTML = "";
+  for (const r of rows) {
+    const tr = document.createElement("tr");
+    if (r.tick === selectedTick) tr.className = "sel";
+    tr.innerHTML = `<td></td><td class="n num"></td><td class="n num pos"></td><td class="n num"></td>`;
+    tr.children[0].textContent = tickName(r.tick);
+    tr.children[1].textContent = fmt(r.price, decimalsOf(r.tick));
+    tr.children[2].textContent = "+" + fmt(r.profit);
+    tr.children[3].textContent = fmt(r.rise) + "%";
+    tb.append(tr);
+  }
+  $("exact").textContent = fmt(c.exact, 4);
+  $("buyVal").textContent = fmt(c.buyVal);
+  $("sellVal").textContent = fmt(sel.price * s.qty);
+  renderFees($("buyFees"), c.buyFees);
+  renderFees($("sellFees"), c.sellFeesAt(sel.price));
+  $("needed").textContent = fmt(c.cost);
+}
+
+function renderRates() {
+  const box = $("rates"); box.innerHTML = "";
+  for (const k of Object.keys(DEFAULT_RATES)) {
+    const l = document.createElement("label"); l.textContent = RATE_LABELS[k];
+    const i = document.createElement("input");
+    i.type = "number"; i.step = "any"; i.min = "0"; i.className = "num"; i.id = "rate_" + k; i.value = rates[k];
+    i.oninput = () => { const v = parseFloat(i.value); if (Number.isFinite(v) && v >= 0) { rates[k] = v; saveSettings(); render(); } };
+    l.append(i); box.append(l);
+  }
+}
+
+/* ---------- Storage: per-person db when signed in, browser storage otherwise ---------- */
+let db = null, userCol = null, trades = [];
+const LS_SETTINGS = "be_settings", LS_TRADES = "be_trades";
+const lsGet = k => { try { return JSON.parse(localStorage.getItem(k)); } catch { return null; } };
+const lsSet = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} };
+
+function settingsObj() {
+  const s = readState();
+  return {plan: s.plan, t0: s.t0, customTick: s.customTick, selectedTick, rates};
+}
+function applySettings(o) {
+  if (!o) return;
+  if (o.plan) $("plan").value = o.plan;
+  $("t0").checked = !!o.t0;
+  if (o.customTick) $("tick").value = o.customTick;
+  if (o.selectedTick) selectedTick = o.selectedTick;
+  if (o.rates) rates = {...DEFAULT_RATES, ...o.rates};
+  renderRates();
+}
+let settingsTimer = null;
+function saveSettings() {
+  clearTimeout(settingsTimer);
+  settingsTimer = setTimeout(() => {
+    const o = settingsObj();
+    lsSet(LS_SETTINGS, o);
+    if (userCol) userCol.doc("settings").set({kind: "settings", ...o}).catch(() => {});
+  }, 600);
+}
+
+function renderHist() {
+  const ul = $("hist"); ul.innerHTML = "";
+  $("histEmpty").hidden = trades.length > 0;
+  for (const t of trades) {
+    const li = document.createElement("li");
+    const meta = document.createElement("div"); meta.className = "meta";
+    const nm = document.createElement("span"); nm.className = "name"; nm.textContent = t.name || "بدون اسم";
+    const det = document.createElement("span"); det.className = "det";
+    det.textContent = `${t.qty.toLocaleString("en-US")} سهم × ${fmt(t.price, 3)} ← بيع على ${fmt(t.breakeven, decimalsOf(t.tick))} (${tickName(t.tick)}) · ${new Date(t.at).toLocaleDateString("ar-EG")}`;
+    meta.append(nm, det);
+    const acts = document.createElement("div"); acts.className = "acts";
+    const load = document.createElement("button"); load.className = "btn ghost"; load.type = "button"; load.textContent = "افتح";
+    load.onclick = () => {
+      $("name").value = t.name || ""; $("qty").value = t.qty; $("price").value = t.price;
+      if (t.plan) $("plan").value = t.plan; $("t0").checked = !!t.t0;
+      window.scrollTo({top: 0, behavior: "smooth"}); render();
+    };
+    const del = document.createElement("button"); del.className = "btn ghost danger"; del.type = "button"; del.textContent = "امسح";
+    del.onclick = () => {
+      if (del.dataset.armed) return removeTrade(t.id);
+      del.dataset.armed = "1"; del.textContent = "متأكد؟";
+      setTimeout(() => { delete del.dataset.armed; del.textContent = "امسح"; }, 3000);
+    };
+    acts.append(load, del);
+    li.append(meta, acts); ul.append(li);
+  }
+}
+
+async function removeTrade(id) {
+  trades = trades.filter(t => t.id !== id);
+  renderHist();
+  if (userCol) { try { await userCol.doc(id).delete(); } catch { $("status").textContent = "مقدرتش أمسح من الحساب، جرّب تاني."; } }
+  else lsSet(LS_TRADES, trades);
+}
+
+$("save").onclick = async () => {
+  if (!lastResult) { $("status").textContent = "اكتب عدد الأسهم وسعر الشراء الأول."; return; }
+  const {s, sel} = lastResult;
+  const t = {kind: "trade", id: "t" + Date.now(), name: s.name, qty: s.qty, price: s.price, plan: s.plan, t0: s.t0,
+             tick: sel.tick, breakeven: sel.price, at: new Date().toISOString()};
+  if (userCol) {
+    try { await userCol.doc(t.id).set(t); $("status").textContent = "اتحفظت في حسابك."; }
+    catch { $("status").textContent = "مقدرتش أحفظ في الحساب، جرّب تاني."; }
+  } else {
+    trades = [t, ...trades]; lsSet(LS_TRADES, trades); renderHist();
+    $("status").textContent = "اتحفظت على الجهاز دا بس.";
+  }
+};
+
+$("resetRates").onclick = () => { rates = {...DEFAULT_RATES}; renderRates(); saveSettings(); render(); };
+for (const id of ["name", "qty", "price"]) $(id).addEventListener("input", render);
+for (const id of ["plan", "t0", "tick", "fills"]) $(id).addEventListener("input", () => { saveSettings(); render(); });
+
+// Start from browser storage, then switch to the account store if it's available.
+applySettings(lsGet(LS_SETTINGS));
+trades = lsGet(LS_TRADES) || [];
+renderRates(); render(); renderHist();
+$("status").textContent = "الحفظ على الجهاز دا.";
+
+(async () => {
+  try {
+    if (!window.claude?.use) return;
+    const [dbNs, user] = await Promise.all([claude.use("db"), claude.use("user")]);
+    if (!dbNs || !user) return;
+    const uid = await user.id();
+    if (!uid) return;
+    db = dbNs; userCol = db.collection("data/users/" + uid);
+    let first = true;
+    userCol.onSnapshot(snap => {
+      const docs = snap.docs.map(d => ({id: d.id, ...d.data()}));
+      const st = docs.find(d => d.id === "settings");
+      if (first) {
+        first = false;
+        if (st) { applySettings(st); render(); }
+        else saveSettings();
+        // Move anything saved on this device into the account once.
+        const local = lsGet(LS_TRADES) || [];
+        const have = new Set(docs.map(d => d.id));
+        for (const t of local) if (!have.has(t.id)) userCol.doc(t.id).set({...t, kind: "trade"}).catch(() => {});
+        if (local.length) lsSet(LS_TRADES, []);
+      }
+      trades = docs.filter(d => d.kind === "trade").sort((a, b) => (b.at || "").localeCompare(a.at || ""));
+      renderHist();
+      $("status").textContent = "محفوظة في حسابك وبتظهر من أي جهاز.";
+    }, () => { $("status").textContent = "مقدرتش أوصل للحساب، الحفظ على الجهاز دا."; });
+  } catch {}
+})();
+</script>
