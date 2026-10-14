@@ -55,7 +55,39 @@ input:focus-visible,select:focus-visible,button:focus-visible,summary:focus-visi
 .in input:focus-visible,.in select:focus-visible{outline:0}
 .check{display:flex;align-items:center;gap:10px;color:var(--fg);font-weight:400;font-size:.95rem;cursor:pointer}
 .check.field{flex-direction:row;padding:10px 12px;background:var(--surface-2);border:1px solid var(--line)}
-.check input{width:1.1rem;height:1.1rem;accent-color:var(--accent);padding:0}
+.check input[type=checkbox]{appearance:none;-webkit-appearance:none;flex:none;width:46px;height:28px;padding:0;border-radius:999px;background:var(--line);border:0;position:relative;cursor:pointer;transition:background .15s}
+.check input[type=checkbox]::after{content:"";position:absolute;top:3px;inset-inline-start:3px;width:22px;height:22px;border-radius:50%;background:var(--surface);box-shadow:0 1px 3px rgba(0,0,0,.3);transition:inset-inline-start .15s}
+.check input[type=checkbox]:checked{background:var(--accent)}
+.check input[type=checkbox]:checked::after{inset-inline-start:21px}
+.field.wide{grid-column:1/-1}
+.stepper{padding:0}
+.stepper input{text-align:center;font-size:1.05rem;font-weight:600;padding:12px 4px}
+.stp{flex:none;width:48px;align-self:stretch;border:0;background:var(--accent-soft);color:var(--accent);font:inherit;font-size:1.5rem;font-weight:600;line-height:1;cursor:pointer;user-select:none;touch-action:manipulation}
+.stp:active{background:var(--accent);color:var(--accent-fg)}
+.stepsctl{display:flex;align-items:center;gap:10px;font-size:.9rem;color:var(--muted)}
+.stepsctl .in{width:150px}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px}
+.card{font:inherit;text-align:start;display:flex;flex-direction:column;gap:2px;padding:12px 14px;border-radius:12px;border:1.5px solid var(--line);background:var(--surface-2);color:var(--fg);cursor:pointer}
+.card b{font-weight:600}
+.card small{color:var(--muted);font-size:.8rem}
+.card[aria-checked="true"]{border-color:var(--accent);background:var(--accent-soft);box-shadow:0 0 0 2px var(--accent-soft)}
+.card[aria-checked="true"] b{color:var(--accent)}
+header{position:relative}
+.digits{position:absolute;inset-block-start:4px;inset-inline-end:0}
+@media (max-width:520px){.digits{position:static;margin-top:10px}}
+.stick{position:fixed;inset-inline:0;bottom:0;z-index:5;display:flex;justify-content:space-between;align-items:center;gap:12px;background:var(--accent);color:var(--accent-fg);padding:12px 20px calc(12px + env(safe-area-inset-bottom,0px));box-shadow:0 -4px 16px rgba(0,0,0,.18)}
+.stick b{font-size:1.5rem}
+.stick[hidden]{display:none}
+@media (min-width:901px){.stick{display:none}}
+@media (max-width:900px){body{padding-bottom:72px}}
+@media (max-width:520px){
+  body{padding-inline:12px}
+  .panel{padding:14px;border-radius:12px}
+  header h1{font-size:1.6rem}
+  .hero .big{font-size:2.6rem}
+  th,td{padding:8px 8px;font-size:.85rem}
+  th{white-space:normal}
+}
 
 .hero{background:var(--accent);color:var(--accent-fg);border-radius:16px;padding:22px 20px;display:flex;flex-direction:column;gap:4px;box-shadow:var(--shadow)}
 .hero .label{font-size:.95rem;opacity:.9}
@@ -70,6 +102,7 @@ input:focus-visible,select:focus-visible,button:focus-visible,summary:focus-visi
 .tablebox{overflow-x:auto;border:1px solid var(--line);border-radius:10px}
 table{width:100%;border-collapse:collapse;font-size:.92rem}
 th,td{padding:9px 12px;text-align:start;border-bottom:1px solid var(--line);white-space:nowrap}
+th{white-space:normal}
 tbody tr:last-child td{border-bottom:0}
 th{color:var(--muted);font-weight:500;font-size:.82rem;background:var(--surface-2)}
 tr.sel td{background:var(--accent-soft);font-weight:600}
@@ -118,6 +151,7 @@ details.rates[open] summary{margin-bottom:14px}
   <header>
     <h1>أبيع على كام؟</h1>
     <p class="sub">أقل سعر بيع يغطي عمولة ثاندر ورسوم البورصة المصرية في الشراء والبيع.</p>
+    <button class="btn ghost digits" id="digitsBtn" type="button" aria-pressed="false">الأرقام: 123</button>
   </header>
 
   <div class="layout">
@@ -127,21 +161,20 @@ details.rates[open] summary{margin-bottom:14px}
         <label class="field" data-help="name">اسم السهم (اختياري)
           <span class="in"><input id="name" type="text" placeholder="مثلاً COMI" autocomplete="off"></span></label>
         <label class="field" data-help="qty">عدد الأسهم
-          <span class="in"><input id="qty" class="num" type="number" inputmode="numeric" min="1" step="1" value="1000"><i>سهم</i></span></label>
-        <label class="field" data-help="price">سعر الشراء
-          <span class="in"><input id="price" class="num" type="number" inputmode="decimal" min="0" step="0.001" value="12.35"><i>جنيه</i></span></label>
-        <label class="field" data-help="plan">الباقة
-          <span class="in"><select id="plan">
+          <span class="in stepper"><button type="button" class="stp" data-for="qty" data-dir="1" aria-label="زيادة" tabindex="-1">+</button><input id="qty" class="num" type="text" inputmode="numeric" autocomplete="off" data-step="100" data-min="1" value="1000"><button type="button" class="stp" data-for="qty" data-dir="-1" aria-label="نقصان" tabindex="-1">−</button></span></label>
+        <label class="field" data-help="price">سعر الشراء (جنيه)
+          <span class="in stepper"><button type="button" class="stp" data-for="price" data-dir="1" aria-label="زيادة" tabindex="-1">+</button><input id="price" class="num" type="text" inputmode="decimal" autocomplete="off" data-step="0.01" data-min="0" value="12.35"><button type="button" class="stp" data-for="price" data-dir="-1" aria-label="نقصان" tabindex="-1">−</button></span></label>
+        <div class="field wide" data-help="plan"><span id="planLabel">الباقة</span><select id="plan" hidden>
             <option value="std">العادية (2 جنيه + 0.1%)</option>
             <option value="stdmin">العادية (0.1% بحد أدنى 2 جنيه)</option>
             <option value="trader">ثاندر تريدر (بدون عمولة)</option>
-          </select></span></label>
+          </select><div class="cards" id="planCards" role="radiogroup" aria-labelledby="planLabel"></div></div>
         <label class="field" data-help="fills">عدد التنفيذات المتوقعة في البيع
-          <span class="in"><input id="fills" class="num" type="number" inputmode="numeric" min="1" step="1" value="1"><i>تنفيذ</i></span></label>
-        <label class="field" data-help="tick">وزن السعر المخصص
-          <span class="in"><input id="tick" class="num" type="number" inputmode="decimal" min="0.001" step="0.001" value="0.05"><i>جنيه</i></span></label>
+          <span class="in stepper"><button type="button" class="stp" data-for="fills" data-dir="1" aria-label="زيادة" tabindex="-1">+</button><input id="fills" class="num" type="text" inputmode="numeric" autocomplete="off" data-step="1" data-min="1" value="1"><button type="button" class="stp" data-for="fills" data-dir="-1" aria-label="نقصان" tabindex="-1">−</button></span></label>
+        <label class="field" data-help="tick">وزن السعر المخصص (جنيه)
+          <span class="in stepper"><button type="button" class="stp" data-for="tick" data-dir="1" aria-label="زيادة" tabindex="-1">+</button><input id="tick" class="num" type="text" inputmode="decimal" autocomplete="off" data-step="0.01" data-min="0.001" value="0.05"><button type="button" class="stp" data-for="tick" data-dir="-1" aria-label="نقصان" tabindex="-1">−</button></span></label>
       </div>
-      <label class="check field" data-help="t0"><input id="t0" type="checkbox"> هبيع في نفس يوم الشراء (T0)</label>
+      <label class="check field wide" data-help="t0"><input id="t0" type="checkbox" role="switch"><span>هبيع في نفس يوم الشراء (T0)</span></label>
     </section>
 
     <aside class="panel help" aria-label="شرح الحقول">
@@ -181,7 +214,7 @@ details.rates[open] summary{margin-bottom:14px}
       <section class="panel">
         <div class="row">
           <h2>الأسعار خطوة بخطوة (على وزن <span id="stepTick">القرش</span>)</h2>
-          <label class="check">عدد الخطوات<input id="steps" class="num" type="number" inputmode="numeric" min="1" max="100" step="1" value="20" style="width:5.5rem"></label>
+          <div class="stepsctl"><span>عدد الخطوات</span><span class="in stepper"><button type="button" class="stp" data-for="steps" data-dir="1" aria-label="زيادة" tabindex="-1">+</button><input id="steps" class="num" type="text" inputmode="numeric" autocomplete="off" data-step="1" data-min="1" value="20"><button type="button" class="stp" data-for="steps" data-dir="-1" aria-label="نقصان" tabindex="-1">−</button></span></div>
         </div>
         <div class="tablebox">
           <table>
@@ -221,6 +254,7 @@ details.rates[open] summary{margin-bottom:14px}
   </div>
 </div>
 
+<div class="stick" id="stick" hidden><span>أقل سعر بيع</span><b class="num" id="stickPrice">—</b></div>
 <script>
 const DEFAULT_RATES = {
   thndrPct: 0.1, thndrFixed: 2,
@@ -247,7 +281,12 @@ let rates = {...DEFAULT_RATES};
 let selectedTick = 0.01;
 let lastResult = null;
 
-const fmt = (x, d=2) => Number.isFinite(x) ? x.toLocaleString("en-US",{minimumFractionDigits:d,maximumFractionDigits:d}) : "—";
+const AR_DIGITS = "٠١٢٣٤٥٦٧٨٩";
+// Accept Arabic-Indic digits and separators typed on an Arabic keyboard.
+const norm = v => String(v).replace(/[٠-٩]/g, d => AR_DIGITS.indexOf(d)).replace(/٫/g, ".").replace(/[٬,،\s]/g, "");
+const num = id => parseFloat(norm($(id).value));
+let digitsAr = false;
+const fmt = (x, d=2) => Number.isFinite(x) ? x.toLocaleString(digitsAr ? "ar-EG" : "en-US",{minimumFractionDigits:d,maximumFractionDigits:d}) : "—";
 const decimalsOf = t => { const s = String(t); return s.includes(".") ? s.split(".")[1].length : 0; };
 const tickName = t => (TICKS.find(k => k.v === t) || {name: fmt(t, decimalsOf(t)) + " ج"}).name;
 
@@ -290,13 +329,34 @@ function compute(s) {
 function readState() {
   return {
     name: $("name").value.trim(),
-    qty: Math.max(0, Math.floor(+$("qty").value || 0)),
-    price: Math.max(0, +$("price").value || 0),
+    qty: Math.max(0, Math.floor(num("qty") || 0)),
+    price: Math.max(0, num("price") || 0),
     plan: $("plan").value,
     t0: $("t0").checked,
-    fills: Math.max(1, Math.floor(+$("fills").value || 1)),
-    customTick: +$("tick").value > 0 ? +$("tick").value : 0.05
+    fills: Math.max(1, Math.floor(num("fills") || 1)),
+    customTick: num("tick") > 0 ? num("tick") : 0.05
   };
+}
+
+const PLANS = {
+  std: ["العادية", "2 جنيه + 0.1% من قيمة الأمر"],
+  stdmin: ["العادية بحد أدنى", "0.1% وبحد أدنى 2 جنيه"],
+  trader: ["ثاندر تريدر", "بدون عمولة لأول 50 أمر في الشهر"]
+};
+function syncPlan() {
+  const box = $("planCards");
+  if (!box.children.length) {
+    for (const [v, [t, sub]] of Object.entries(PLANS)) {
+      const b = document.createElement("button");
+      b.type = "button"; b.className = "card"; b.dataset.v = v; b.setAttribute("role", "radio");
+      const bt = document.createElement("b"); bt.textContent = t;
+      const sm = document.createElement("small"); sm.textContent = sub;
+      b.append(bt, sm);
+      b.onclick = () => { $("plan").value = v; $("plan").dispatchEvent(new Event("input", {bubbles: true})); };
+      box.append(b);
+    }
+  }
+  for (const b of box.children) b.setAttribute("aria-checked", String(b.dataset.v === $("plan").value));
 }
 
 function renderFees(el, f) {
@@ -312,6 +372,7 @@ function renderFees(el, f) {
 }
 
 function render() {
+  syncPlan();
   const s = readState();
   const ticks = [...TICKS.map(t => t.v)];
   if (!ticks.includes(s.customTick)) ticks.push(s.customTick);
@@ -361,7 +422,7 @@ function render() {
   $("exact").textContent = fmt(c.exact, 4);
   $("stepTick").textContent = tickName(selectedTick);
   const sb = $("stepRows"); sb.innerHTML = "";
-  const n = Math.min(100, Math.max(1, Math.floor(+$("steps").value || 20)));
+  const n = Math.min(100, Math.max(1, Math.floor(num("steps") || 20)));
   const dd = decimalsOf(selectedTick);
   for (let k = 0; k < n; k++) {
     const P = +(sel.price + k * selectedTick).toFixed(dd);
@@ -523,6 +584,60 @@ $("status").textContent = "الحفظ على الجهاز دا.";
   });
   document.addEventListener("focusout", e => { if (!e.relatedTarget || !e.relatedTarget.closest("[data-help]")) focusOn(""); });
   if (window.matchMedia && matchMedia("(max-width:900px)").matches) $("helpBox").open = false;
+})();
+
+// Number steppers: tap +/−, hold to repeat, ArrowUp/ArrowDown on the keyboard.
+(() => {
+  const decs = x => { const t = String(x); return t.includes(".") ? t.split(".")[1].length : 0; };
+  const bump = (id, dir) => {
+    const el = $(id), st = parseFloat(el.dataset.step) || 1, mn = parseFloat(el.dataset.min);
+    const d = Math.max(decs(st), decs(num(id) || 0));
+    let v = (num(id) || 0) + dir * st;
+    if (Number.isFinite(mn)) v = Math.max(mn, v);
+    el.value = String(+v.toFixed(d));
+    el.dispatchEvent(new Event("input", {bubbles: true}));
+  };
+  let t1 = null, t2 = null;
+  const stop = () => { clearTimeout(t1); clearInterval(t2); };
+  document.querySelectorAll(".stp").forEach(b => {
+    const go = () => bump(b.dataset.for, +b.dataset.dir);
+    b.addEventListener("pointerdown", e => {
+      e.preventDefault(); go(); stop();
+      t1 = setTimeout(() => { t2 = setInterval(go, 70); }, 400);
+    });
+    for (const ev of ["pointerup", "pointerleave", "pointercancel"]) b.addEventListener(ev, stop);
+    b.addEventListener("click", e => { if (e.detail === 0) go(); });
+  });
+  document.querySelectorAll(".stepper input").forEach(inp => inp.addEventListener("keydown", e => {
+    if (e.key === "ArrowUp" || e.key === "ArrowDown") { e.preventDefault(); bump(inp.id, e.key === "ArrowUp" ? 1 : -1); }
+  }));
+})();
+
+// Digit style: Western (123) or Arabic-Indic (١٢٣), remembered on this device.
+(() => {
+  const btn = $("digitsBtn");
+  const apply = on => {
+    digitsAr = on;
+    btn.setAttribute("aria-pressed", String(on));
+    btn.textContent = on ? "الأرقام: ١٢٣" : "الأرقام: 123";
+    render(); renderHist();
+  };
+  try { if (localStorage.getItem("be_digits") === "ar") apply(true); } catch {}
+  btn.onclick = () => {
+    apply(!digitsAr);
+    try { localStorage.setItem("be_digits", digitsAr ? "ar" : "en"); } catch {}
+  };
+})();
+
+// Mobile: show the break-even price in a bottom bar once the main card scrolls out of view.
+(() => {
+  const hero = document.querySelector(".hero"), bar = $("stick");
+  new MutationObserver(() => { $("stickPrice").textContent = $("heroPrice").textContent; })
+    .observe($("heroPrice"), {childList: true, characterData: true, subtree: true});
+  $("stickPrice").textContent = $("heroPrice").textContent;
+  if ("IntersectionObserver" in window) {
+    new IntersectionObserver(([e]) => { bar.hidden = e.isIntersecting; }).observe(hero);
+  }
 })();
 </script>
 </body>
