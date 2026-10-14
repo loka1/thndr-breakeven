@@ -201,6 +201,13 @@ tr.off td:first-child::after{content:" (فوق الحد اليومي)";font-size
 .linkbox{display:flex;gap:8px;flex-wrap:wrap}
 .linkbox input{flex:1;min-width:0;direction:ltr;font-size:.8rem}
 .note .num,.goal .note .num{white-space:nowrap}
+footer.site{border-top:1px solid var(--line);padding-block:20px 8px;display:flex;flex-direction:column;gap:10px;align-items:center;text-align:center;color:var(--muted);font-size:.88rem}
+footer.site nav{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+footer.site a{display:inline-flex;align-items:center;gap:6px;color:var(--fg);text-decoration:none;border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:6px 14px;font-weight:500}
+footer.site a:hover{border-color:var(--accent);color:var(--accent)}
+footer.site a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+footer.site svg{width:16px;height:16px;fill:currentColor;flex:none}
+footer.site p{margin:0;max-width:60ch}
 .help .sub2{margin:10px 0 0;font-size:.8rem;color:var(--muted)}
 </style>
 </head>
@@ -421,6 +428,20 @@ tr.off td:first-child::after{content:" (فوق الحد اليومي)";font-size
       <p class="small" id="cmpNote"></p>
     </section>
   </div>
+
+  <footer class="site">
+    <nav aria-label="روابط">
+      <a href="https://x.com/lokas7755" target="_blank" rel="noopener noreferrer">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+        <span>@lokas7755</span></a>
+      <a href="https://github.com/loka1" target="_blank" rel="noopener noreferrer">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.1.79-.25.79-.56v-2c-3.2.7-3.88-1.36-3.88-1.36-.52-1.33-1.28-1.69-1.28-1.69-1.05-.72.08-.7.08-.7 1.15.08 1.76 1.19 1.76 1.19 1.03 1.76 2.7 1.25 3.36.96.1-.75.4-1.25.73-1.54-2.55-.29-5.24-1.28-5.24-5.68 0-1.25.45-2.28 1.18-3.08-.12-.29-.51-1.46.11-3.04 0 0 .97-.31 3.17 1.18a11 11 0 0 1 5.77 0c2.2-1.49 3.17-1.18 3.17-1.18.62 1.58.23 2.75.11 3.04.74.8 1.18 1.83 1.18 3.08 0 4.41-2.69 5.38-5.25 5.67.41.36.78 1.06.78 2.14v3.17c0 .31.21.67.8.56A11.5 11.5 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5z"/></svg>
+        <span>loka1</span></a>
+      <a href="https://github.com/loka1/thndr-breakeven" target="_blank" rel="noopener noreferrer"><span>الريبو على GitHub</span></a>
+    </nav>
+    <p>© 2026 Lokas. كل الحقوق محفوظة.</p>
+    <p>الأرقام تقديرية للمساعدة في القرار وليست نصيحة استثمارية. الأداة غير تابعة لشركة ثاندر، وفاتورة ثاندر هي المرجع.</p>
+  </footer>
 </div>
 
 <div class="stick" id="stick" hidden><span>أقل سعر بيع</span><b class="num" id="stickPrice">—</b></div>
