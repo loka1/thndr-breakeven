@@ -1,157 +1,224 @@
-<title>حاسبة نقطة التعادل</title>
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>أبيع على كام؟</title>
+<meta name="description" content="حاسبة أقل سعر بيع يغطي عمولة ثاندر ورسوم البورصة المصرية">
 <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap">
 <style>
-/* Layout: one narrow column — inputs, the headline break-even price, a tick-size ladder, fee breakdown, saved trades. */
+/* Layout: inputs and results in the main column, a sticky field guide on the left (RTL: second column). */
 :root{
-  --bg:#f2f5f3; --surface:#ffffff; --fg:#14211c; --muted:#5d6b65; --line:#d9e1dc;
-  --accent:#0d6e52; --accent-soft:#e0efe9; --up:#0d7a4f; --down:#b23a31; --warn:#9a6a0a;
-  --font-body:"IBM Plex Sans Arabic",system-ui,"Segoe UI",Tahoma,sans-serif;
+  color-scheme:light;
+  --bg:#eef2ef; --surface:#ffffff; --surface-2:#f6f9f7; --fg:#12201a; --muted:#5a6a63; --line:#d6dfda;
+  --accent:#0b6b4f; --accent-fg:#ffffff; --accent-soft:#dff0e8; --up:#0b7a4c; --down:#b23a31; --warn:#8f6208;
+  --shadow:0 1px 2px rgba(18,32,26,.06),0 4px 16px rgba(18,32,26,.05);
+  --font-body:"IBM Plex Sans Arabic","Segoe UI",Tahoma,system-ui,sans-serif;
   --font-num:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
 }
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
-  --bg:#0f1714; --surface:#16211d; --fg:#e4ece8; --muted:#93a39c; --line:#26352f;
-  --accent:#4cc39a; --accent-soft:#1a3329; --up:#52c995; --down:#ef7c72; --warn:#e2b55a; color-scheme:dark}}
-:root[data-theme="dark"]{
-  --bg:#0f1714; --surface:#16211d; --fg:#e4ece8; --muted:#93a39c; --line:#26352f;
-  --accent:#4cc39a; --accent-soft:#1a3329; --up:#52c995; --down:#ef7c72; --warn:#e2b55a; color-scheme:dark}
+@media (prefers-color-scheme:dark){:root{
+  color-scheme:dark;
+  --bg:#0d1512; --surface:#15201b; --surface-2:#111b17; --fg:#e3ebe7; --muted:#92a39b; --line:#25342d;
+  --accent:#4cc39a; --accent-fg:#06231a; --accent-soft:#17322a; --up:#52c995; --down:#ef7c72; --warn:#e2b55a;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 4px 16px rgba(0,0,0,.25)}}
 *{box-sizing:border-box}
-body{background:var(--bg);color:var(--fg);font-family:var(--font-body);font-size:15px;line-height:1.6;padding:0 16px}
-.wrap{max-width:640px;margin:0 auto;padding-block:24px 48px;display:flex;flex-direction:column;gap:20px}
-h1{font-size:1.5rem;margin:0;text-wrap:balance;font-weight:700}
-.sub{color:var(--muted);margin:2px 0 0;font-size:.9rem}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--font-body);font-size:16px;line-height:1.65;padding:0 16px}
+.wrap{max-width:1080px;margin:0 auto;padding-block:28px 56px;display:flex;flex-direction:column;gap:24px}
+header h1{font-size:1.9rem;line-height:1.3;margin:0;font-weight:700;text-wrap:balance}
+header .sub{color:var(--muted);margin:4px 0 0}
 .num{font-family:var(--font-num);font-variant-numeric:tabular-nums;direction:ltr;unicode-bidi:isolate}
-.panel{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:14px}
-.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
-label{display:flex;flex-direction:column;gap:4px;font-size:.85rem;color:var(--muted);font-weight:500}
-input,select{font:inherit;color:var(--fg);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:9px 10px;width:100%;min-width:0}
-input.num{text-align:left}
-input:focus-visible,select:focus-visible,button:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
-.seg{display:flex;flex-wrap:wrap;gap:6px}
-.seg button{font:inherit;font-size:.85rem;border:1px solid var(--line);background:var(--bg);color:var(--fg);border-radius:999px;padding:5px 12px;cursor:pointer}
-.seg button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--surface)}
-.check{flex-direction:row;align-items:center;gap:8px;color:var(--fg);font-weight:400}
-.check input{width:auto}
-.hero{background:var(--accent-soft);border:1px solid var(--accent);border-radius:12px;padding:18px 16px;display:flex;flex-direction:column;gap:4px}
-.hero .label{font-size:.85rem;color:var(--muted)}
-.hero .big{font-size:2.4rem;font-weight:600;color:var(--accent);line-height:1.2}
-.hero .note{font-size:.88rem}
-h2{font-size:1rem;margin:0;font-weight:600}
-.tablebox{overflow-x:auto}
-table{width:100%;border-collapse:collapse;font-size:.9rem}
-th,td{padding:8px 6px;text-align:right;border-bottom:1px solid var(--line);white-space:nowrap}
-th{color:var(--muted);font-weight:500;font-size:.8rem}
-td.n{text-align:left}
-tr.sel td{background:var(--accent-soft)}
+
+.layout{display:grid;gap:20px;align-items:start;grid-template-columns:minmax(0,1fr) 330px;
+  grid-template-areas:"inputs help" "results help"}
+.inputs{grid-area:inputs} .results{grid-area:results} .help{grid-area:help;position:sticky;top:16px}
+.results{display:flex;flex-direction:column;gap:20px;min-width:0}
+@media (max-width:900px){
+  .layout{grid-template-columns:minmax(0,1fr);grid-template-areas:"inputs" "help" "results"}
+  .help{position:static}
+}
+
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px;display:flex;flex-direction:column;gap:16px;box-shadow:var(--shadow);min-width:0}
+.panel > h2,.row h2{font-size:1.05rem;margin:0;font-weight:600}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px}
+.field{display:flex;flex-direction:column;gap:6px;font-size:.9rem;color:var(--muted);font-weight:500;border-radius:10px;padding:2px;transition:background .15s}
+.field.focus{background:var(--accent-soft)}
+.in{display:flex;align-items:center;background:var(--surface-2);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.in:focus-within{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.in input,.in select{border:0;background:transparent;box-shadow:none}
+.in i{font-style:normal;color:var(--muted);font-size:.8rem;padding-inline:0 12px;white-space:nowrap}
+input,select{font:inherit;color:var(--fg);background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:10px 12px;width:100%;min-width:0}
+input.num{text-align:right}
+input:focus-visible,select:focus-visible,button:focus-visible,summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.in input:focus-visible,.in select:focus-visible{outline:0}
+.check{display:flex;align-items:center;gap:10px;color:var(--fg);font-weight:400;font-size:.95rem;cursor:pointer}
+.check.field{flex-direction:row;padding:10px 12px;background:var(--surface-2);border:1px solid var(--line)}
+.check input{width:1.1rem;height:1.1rem;accent-color:var(--accent);padding:0}
+
+.hero{background:var(--accent);color:var(--accent-fg);border-radius:16px;padding:22px 20px;display:flex;flex-direction:column;gap:4px;box-shadow:var(--shadow)}
+.hero .label{font-size:.95rem;opacity:.9}
+.hero .big{font-size:3rem;font-weight:600;line-height:1.15;align-self:flex-start}
+.hero .note{font-size:.95rem;opacity:.95}
+.hero .note .pos,.hero .note .neg{color:inherit;font-weight:600}
+
+.seg{display:flex;flex-wrap:wrap;gap:8px}
+.seg button{font:inherit;font-size:.9rem;border:1px solid var(--line);background:var(--surface-2);color:var(--fg);border-radius:999px;padding:6px 16px;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-fg);font-weight:600}
+
+.tablebox{overflow-x:auto;border:1px solid var(--line);border-radius:10px}
+table{width:100%;border-collapse:collapse;font-size:.92rem}
+th,td{padding:9px 12px;text-align:start;border-bottom:1px solid var(--line);white-space:nowrap}
+tbody tr:last-child td{border-bottom:0}
+th{color:var(--muted);font-weight:500;font-size:.82rem;background:var(--surface-2)}
+tr.sel td{background:var(--accent-soft);font-weight:600}
 .pos{color:var(--up)} .neg{color:var(--down)}
-.fees{display:grid;grid-template-columns:1fr 1fr;gap:16px}
-@media (max-width:480px){.fees{grid-template-columns:1fr}}
-.fees dl{margin:0;display:grid;grid-template-columns:1fr auto;gap:2px 10px;font-size:.88rem}
-.fees dt{color:var(--muted)} .fees dd{margin:0;text-align:left}
-.fees .tot{font-weight:600;color:var(--fg);border-top:1px solid var(--line);padding-top:4px}
-.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between}
-.btn{font:inherit;font-weight:600;border:0;border-radius:8px;padding:9px 16px;cursor:pointer;background:var(--accent);color:var(--surface)}
-.btn.ghost{background:transparent;color:var(--muted);border:1px solid var(--line);font-weight:500;padding:5px 10px;font-size:.8rem}
+
+.fees{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+@media (max-width:560px){.fees{grid-template-columns:1fr}}
+.fees dl{margin:0;display:grid;grid-template-columns:1fr auto;gap:4px 12px;font-size:.92rem}
+.fees dt{color:var(--muted)} .fees dd{margin:0}
+.fees .tot{font-weight:600;color:var(--fg);border-top:1px solid var(--line);padding-top:6px}
+.fees h3{margin:0 0 8px;font-size:.9rem;font-weight:600}
+
+.row{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between}
+.btn{font:inherit;font-weight:600;border:0;border-radius:10px;padding:10px 18px;cursor:pointer;background:var(--accent);color:var(--accent-fg)}
+.btn.ghost{background:transparent;color:var(--muted);border:1px solid var(--line);font-weight:500;padding:6px 12px;font-size:.85rem}
 .btn.danger{color:var(--down);border-color:var(--down)}
-.status{font-size:.82rem;color:var(--muted)}
+.status{font-size:.85rem;color:var(--muted)}
 .hist{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
-.hist li{display:flex;gap:10px;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.hist li{display:flex;gap:10px;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--line);flex-wrap:wrap}
 .hist li:last-child{border-bottom:0}
 .hist .meta{display:flex;flex-direction:column;min-width:0}
 .hist .name{font-weight:600}
-.hist .det{font-size:.82rem;color:var(--muted)}
+.hist .det{font-size:.85rem;color:var(--muted)}
 .hist .acts{display:flex;gap:6px}
-.empty{color:var(--muted);font-size:.9rem;margin:0}
-details summary{cursor:pointer;font-weight:600}
-details[open] summary{margin-bottom:12px}
-.small{font-size:.8rem;color:var(--muted);margin:0}
-.warn{color:var(--warn)}
-@media (prefers-reduced-motion:no-preference){.hero .big{transition:color .2s}}
-</style>
+.empty{color:var(--muted);margin:0}
+.small{font-size:.85rem;color:var(--muted);margin:0}
 
-<div class="wrap" dir="rtl" lang="ar">
+.help summary{cursor:pointer;font-weight:700;font-size:1.05rem;list-style:none;display:flex;justify-content:space-between;align-items:center}
+.help summary::-webkit-details-marker{display:none}
+.help summary::after{content:"+";color:var(--muted);font-size:1.3rem}
+.help[open] summary::after{content:"−"}
+.help dl{margin:14px 0 0;display:flex;flex-direction:column;gap:6px}
+.help .item{padding:10px 12px;border-radius:10px;border:1px solid transparent;transition:background .15s,border-color .15s}
+.help .item.on{background:var(--accent-soft);border-color:var(--accent)}
+.help dt{font-weight:600;font-size:.95rem}
+.help dd{margin:2px 0 0;font-size:.88rem;color:var(--muted)}
+.help .item.on dd{color:var(--fg)}
+
+details.rates summary{cursor:pointer;font-weight:600}
+details.rates[open] summary{margin-bottom:14px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
   <header>
     <h1>أبيع على كام؟</h1>
     <p class="sub">أقل سعر بيع يغطي عمولة ثاندر ورسوم البورصة المصرية في الشراء والبيع.</p>
   </header>
 
-  <section class="panel" aria-label="بيانات الصفقة">
-    <div class="grid">
-      <label>اسم السهم (اختياري)<input id="name" type="text" placeholder="مثلاً COMI" autocomplete="off"></label>
-      <label>عدد الأسهم<input id="qty" class="num" type="number" inputmode="numeric" min="1" step="1" value="1000"></label>
-      <label>سعر الشراء (جنيه)<input id="price" class="num" type="number" inputmode="decimal" min="0" step="0.001" value="12.35"></label>
-    </div>
-    <div class="grid">
-      <label>الباقة
-        <select id="plan">
-          <option value="std">العادية (2 ج + 0.1%)</option>
-          <option value="stdmin">العادية (0.1% بحد أدنى 2 ج)</option>
-          <option value="trader">Thndr Trader (بدون عمولة)</option>
-        </select>
-      </label>
-      <label>عدد التنفيذات المتوقعة في البيع<input id="fills" class="num" type="number" inputmode="numeric" min="1" step="1" value="1"></label>
-      <label>وزن السعر (التك) المخصص<input id="tick" class="num" type="number" inputmode="decimal" min="0.001" step="0.001" value="0.05"></label>
-    </div>
-    <label class="check"><input id="t0" type="checkbox"> هبيع في نفس الجلسة (T0) — الدمغة 0.025% بدل 0.05%</label>
-  </section>
+  <div class="layout">
+    <section class="panel inputs" aria-label="بيانات الصفقة">
+      <h2>بيانات الصفقة</h2>
+      <div class="grid">
+        <label class="field" data-help="name">اسم السهم (اختياري)
+          <span class="in"><input id="name" type="text" placeholder="مثلاً COMI" autocomplete="off"></span></label>
+        <label class="field" data-help="qty">عدد الأسهم
+          <span class="in"><input id="qty" class="num" type="number" inputmode="numeric" min="1" step="1" value="1000"><i>سهم</i></span></label>
+        <label class="field" data-help="price">سعر الشراء
+          <span class="in"><input id="price" class="num" type="number" inputmode="decimal" min="0" step="0.001" value="12.35"><i>جنيه</i></span></label>
+        <label class="field" data-help="plan">الباقة
+          <span class="in"><select id="plan">
+            <option value="std">العادية (2 جنيه + 0.1%)</option>
+            <option value="stdmin">العادية (0.1% بحد أدنى 2 جنيه)</option>
+            <option value="trader">ثاندر تريدر (بدون عمولة)</option>
+          </select></span></label>
+        <label class="field" data-help="fills">عدد التنفيذات المتوقعة في البيع
+          <span class="in"><input id="fills" class="num" type="number" inputmode="numeric" min="1" step="1" value="1"><i>تنفيذ</i></span></label>
+        <label class="field" data-help="tick">وزن السعر المخصص
+          <span class="in"><input id="tick" class="num" type="number" inputmode="decimal" min="0.001" step="0.001" value="0.05"><i>جنيه</i></span></label>
+      </div>
+      <label class="check field" data-help="t0"><input id="t0" type="checkbox"> هبيع في نفس يوم الشراء (T0)</label>
+    </section>
 
-  <section class="hero" aria-live="polite">
-    <span class="label">أقل سعر بيع على وزن <span id="heroTick">القرش</span></span>
-    <span class="big num" id="heroPrice">—</span>
-    <span class="note" id="heroNote"></span>
-  </section>
+    <aside class="panel help" aria-label="شرح الحقول">
+      <details id="helpBox" open style="display:contents">
+        <summary>شرح الحقول</summary>
+        <dl>
+          <div class="item" id="help-name"><dt>اسم السهم</dt><dd>للتسمية بس. بيظهر في قايمة الصفقات المحفوظة ومش داخل في الحساب.</dd></div>
+          <div class="item" id="help-qty"><dt>عدد الأسهم</dt><dd>الكمية اللي اشتريتها وناوي تبيعها كلها.</dd></div>
+          <div class="item" id="help-price"><dt>سعر الشراء</dt><dd>سعر السهم الواحد اللي اشتريت بيه، بدون الرسوم.</dd></div>
+          <div class="item" id="help-plan"><dt>الباقة</dt><dd>بتحدد عمولة ثاندر. «العادية»: 2 جنيه ثابتة على كل أمر + 0.1% من قيمته. «ثاندر تريدر»: العمولة بتتحسب صفر (بترجعلك آخر اليوم) لأول 50 أمر في الشهر. رسوم البورصة والجهات الحكومية بتتدفع في كل الحالات.</dd></div>
+          <div class="item" id="help-fills"><dt>عدد التنفيذات</dt><dd>أمر البيع ممكن يتنفذ على دفعات من أكتر من مشتري. كل دفعة بيتحسب عليها حد أدنى 1 جنيه رسوم رقابة مالية. لو مش متأكد اكتب 1. الخانة دي مش عدد الأسهم.</dd></div>
+          <div class="item" id="help-tick"><dt>وزن السعر المخصص</dt><dd>أصغر خطوة سعر تحب تقرّب عليها، مثلاً 0.05 أو 0.5. السعر بيتقرّب لفوق علشان يغطي الرسوم. بيظهر كزر جنب القرش والعشرة قروش والجنيه.</dd></div>
+          <div class="item" id="help-t0"><dt>البيع في نفس اليوم (T0)</dt><dd>لو بعت في نفس جلسة الشراء، ضريبة الدمغة بتبقى 0.025% بدل 0.05%، لأن نصها بيترجعلك بعد الجلسة.</dd></div>
+        </dl>
+      </details>
+    </aside>
 
-  <section class="panel">
-    <h2>السعر حسب الوزن</h2>
-    <div class="seg" id="tickSeg" role="group" aria-label="اختار الوزن"></div>
-    <div class="tablebox">
-      <table>
-        <thead><tr><th>الوزن</th><th>أقل سعر بيع</th><th>صافي الربح عند السعر دا</th><th>الارتفاع المطلوب</th></tr></thead>
-        <tbody id="ladder"></tbody>
-      </table>
-    </div>
-    <p class="small">السعر الدقيق بدون تقريب: <span class="num" id="exact">—</span></p>
-  </section>
+    <div class="results">
+      <section class="hero" aria-live="polite">
+        <span class="label">أقل سعر بيع على وزن <span id="heroTick">القرش</span></span>
+        <span class="big num" id="heroPrice">—</span>
+        <span class="note" id="heroNote"></span>
+      </section>
 
-  <section class="panel">
-    <div class="row">
-      <h2>الأسعار خطوة بخطوة (على وزن <span id="stepTick">القرش</span>)</h2>
-      <label class="check">عدد الخطوات<input id="steps" class="num" type="number" inputmode="numeric" min="1" max="100" step="1" value="20" style="width:5rem"></label>
-    </div>
-    <div class="tablebox">
-      <table>
-        <thead><tr><th>#</th><th>سعر البيع</th><th>صافي الربح</th><th>الارتفاع عن الشراء</th></tr></thead>
-        <tbody id="stepRows"></tbody>
-      </table>
-    </div>
-    <p class="small">أول صف هو أقل سعر بيع يغطي الرسوم، وكل صف بعده بيزيد وزن واحد. اختار الوزن من الأزرار اللي فوق.</p>
-  </section>
+      <section class="panel">
+        <h2>السعر حسب الوزن</h2>
+        <div class="seg" id="tickSeg" role="group" aria-label="اختار الوزن"></div>
+        <div class="tablebox">
+          <table>
+            <thead><tr><th>الوزن</th><th>أقل سعر بيع</th><th>صافي الربح</th><th>الارتفاع المطلوب</th></tr></thead>
+            <tbody id="ladder"></tbody>
+          </table>
+        </div>
+        <p class="small">السعر الدقيق بدون تقريب: <span class="num" id="exact">—</span></p>
+      </section>
 
-  <section class="panel">
-    <h2>تفاصيل الرسوم</h2>
-    <div class="fees">
-      <div><p class="small" style="margin-bottom:6px">الشراء — قيمة <span class="num" id="buyVal"></span></p><dl id="buyFees"></dl></div>
-      <div><p class="small" style="margin-bottom:6px">البيع عند أقل سعر — قيمة <span class="num" id="sellVal"></span></p><dl id="sellFees"></dl></div>
-    </div>
-    <p class="small">أنت محتاج تحصّل <span class="num" id="needed"></span> ج من البيع علشان ترجع اللي دفعته.</p>
-  </section>
+      <section class="panel">
+        <div class="row">
+          <h2>الأسعار خطوة بخطوة (على وزن <span id="stepTick">القرش</span>)</h2>
+          <label class="check">عدد الخطوات<input id="steps" class="num" type="number" inputmode="numeric" min="1" max="100" step="1" value="20" style="width:5.5rem"></label>
+        </div>
+        <div class="tablebox">
+          <table>
+            <thead><tr><th>الخطوة</th><th>سعر البيع</th><th>صافي الربح</th><th>الارتفاع عن الشراء</th></tr></thead>
+            <tbody id="stepRows"></tbody>
+          </table>
+        </div>
+        <p class="small">أول صف هو أقل سعر بيع يغطي الرسوم، وكل صف بعده بيزيد وزن واحد. اختار الوزن من الأزرار اللي فوق.</p>
+      </section>
 
-  <section class="panel">
-    <div class="row">
-      <h2>الصفقات المحفوظة</h2>
-      <button class="btn" id="save" type="button">احفظ الصفقة</button>
-    </div>
-    <span class="status" id="status"></span>
-    <ul class="hist" id="hist"></ul>
-    <p class="empty" id="histEmpty">لسه مفيش صفقات محفوظة. اكتب البيانات فوق واضغط «احفظ الصفقة» علشان ترجعلها بعدين.</p>
-  </section>
+      <section class="panel">
+        <h2>تفاصيل الرسوم</h2>
+        <div class="fees">
+          <div><h3>الشراء، قيمة <span class="num" id="buyVal"></span></h3><dl id="buyFees"></dl></div>
+          <div><h3>البيع عند أقل سعر، قيمة <span class="num" id="sellVal"></span></h3><dl id="sellFees"></dl></div>
+        </div>
+        <p class="small">محتاج تحصّل <span class="num" id="needed"></span> جنيه من البيع علشان ترجّع اللي دفعته.</p>
+      </section>
 
-  <details class="panel">
-    <summary>نسب الرسوم (تقدر تعدّلها)</summary>
-    <div class="grid" id="rates"></div>
-    <button class="btn ghost" id="resetRates" type="button">رجّع النسب الافتراضية</button>
-    <p class="small">المصدر: صفحة رسوم ثاندر (أغسطس 2026). الرسوم بتتحسب على الشراء والبيع. رسوم الرقابة المالية حدها الأدنى 1 ج لكل تنفيذ، فلو أمر البيع اتقسم على كذا تنفيذ كل تنفيذ صغير بيزوّد حوالي 1 ج. في باقة Trader العمولة بتتخصم وترجعلك آخر اليوم، وده لأول 50 أمر في الشهر بس. الأرقام تقريبية والفاتورة في التطبيق هي المرجع.</p>
-  </details>
+      <section class="panel">
+        <div class="row">
+          <h2>الصفقات المحفوظة</h2>
+          <button class="btn" id="save" type="button">احفظ الصفقة</button>
+        </div>
+        <span class="status" id="status"></span>
+        <ul class="hist" id="hist"></ul>
+        <p class="empty" id="histEmpty">لسه مفيش صفقات محفوظة. اكتب البيانات فوق واضغط «احفظ الصفقة» علشان ترجعلها بعدين.</p>
+      </section>
+
+      <details class="panel rates">
+        <summary>نسب الرسوم (تقدر تعدّلها)</summary>
+        <div class="grid" id="rates"></div>
+        <button class="btn ghost" id="resetRates" type="button" style="align-self:flex-start">رجّع النسب الافتراضية</button>
+        <p class="small">المصدر: صفحة رسوم ثاندر (أغسطس 2026). الرسوم بتتحسب على الشراء والبيع. رسوم الرقابة المالية حدها الأدنى 1 جنيه لكل تنفيذ، فلو أمر البيع اتقسم على كذا تنفيذ كل تنفيذ صغير بيزوّد حوالي 1 جنيه. في ثاندر تريدر العمولة بتتخصم وترجعلك آخر اليوم، وده لأول 50 أمر في الشهر بس. الأرقام تقريبية والفاتورة في التطبيق هي المرجع.</p>
+      </details>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -169,7 +236,7 @@ const RATE_LABELS = {
   mcdrPct:"مصر للمقاصة %", mcdrMax:"المقاصة حد أقصى (ج)",
   fraPct:"الرقابة المالية %", fraMin:"الرقابة حد أدنى (ج)", fraMax:"الرقابة حد أقصى (ج)",
   riskPct:"صندوق حماية المستثمر %", riskMax:"الصندوق حد أقصى (ج)",
-  stampT1:"الدمغة T1/T2 %", stampT0:"الدمغة T0 %"
+  stampT1:"الدمغة (بيع بعد يوم أو أكتر) %", stampT0:"الدمغة (بيع نفس اليوم) %"
 };
 const TICKS = [
   {v:0.01, name:"القرش"}, {v:0.1, name:"العشرة قروش"}, {v:1, name:"الجنيه"}
@@ -364,7 +431,7 @@ function renderHist() {
     const meta = document.createElement("div"); meta.className = "meta";
     const nm = document.createElement("span"); nm.className = "name"; nm.textContent = t.name || "بدون اسم";
     const det = document.createElement("span"); det.className = "det";
-    det.textContent = `${t.qty.toLocaleString("en-US")} سهم × ${fmt(t.price, 3)} ← بيع على ${fmt(t.breakeven, decimalsOf(t.tick))} (${tickName(t.tick)}) · ${new Date(t.at).toLocaleDateString("ar-EG")}`;
+    det.textContent = `${t.qty.toLocaleString("en-US")} سهم × ${fmt(t.price, 3)} ← بيع على ${fmt(t.breakeven, decimalsOf(t.tick))} (${tickName(t.tick)}) · ${new Date(t.at).toLocaleDateString("en-GB")}`;
     meta.append(nm, det);
     const acts = document.createElement("div"); acts.className = "acts";
     const load = document.createElement("button"); load.className = "btn ghost"; load.type = "button"; load.textContent = "افتح";
@@ -443,4 +510,20 @@ $("status").textContent = "الحفظ على الجهاز دا.";
     }, () => { $("status").textContent = "مقدرتش أوصل للحساب، الحفظ على الجهاز دا."; });
   } catch {}
 })();
+
+// Field guide: highlight the explanation of the field being edited; collapse the guide on narrow screens.
+(() => {
+  const focusOn = id => {
+    document.querySelectorAll(".help .item").forEach(el => el.classList.toggle("on", el.id === "help-" + id));
+    document.querySelectorAll(".field[data-help]").forEach(el => el.classList.toggle("focus", el.dataset.help === id));
+  };
+  document.addEventListener("focusin", e => {
+    const f = e.target.closest && e.target.closest("[data-help]");
+    if (f) focusOn(f.dataset.help);
+  });
+  document.addEventListener("focusout", e => { if (!e.relatedTarget || !e.relatedTarget.closest("[data-help]")) focusOn(""); });
+  if (window.matchMedia && matchMedia("(max-width:900px)").matches) $("helpBox").open = false;
+})();
 </script>
+</body>
+</html>
