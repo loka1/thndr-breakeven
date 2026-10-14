@@ -1,5 +1,5 @@
 // Offline cache: serve cached files first, refresh them in the background.
-const CACHE = "breakeven-v2";
+const CACHE = "breakeven-v3";
 const CORE = ["./", "index.html", "manifest.webmanifest", "icon.svg", "icon-192.png", "icon-512.png"];
 
 self.addEventListener("install", e => {
