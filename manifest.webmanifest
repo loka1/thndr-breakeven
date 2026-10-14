@@ -1,0 +1,17 @@
+{
+  "name": "أبيع على كام؟",
+  "short_name": "أبيع على كام",
+  "description": "حاسبة أقل سعر بيع يغطي عمولة ثاندر ورسوم البورصة المصرية",
+  "lang": "ar",
+  "dir": "rtl",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#eef2ef",
+  "theme_color": "#0b6b4f",
+  "icons": [
+    {"src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable"},
+    {"src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable"},
+    {"src": "icon.svg", "sizes": "any", "type": "image/svg+xml"}
+  ]
+}

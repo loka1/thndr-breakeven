@@ -4,6 +4,10 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>أبيع على كام؟</title>
+<meta name="theme-color" content="#0b6b4f">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon-192.png">
 <meta name="description" content="حاسبة أقل سعر بيع يغطي عمولة ثاندر ورسوم البورصة المصرية">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -144,6 +148,55 @@ tr.sel td{background:var(--accent-soft);font-weight:600}
 details.rates summary{cursor:pointer;font-weight:600}
 details.rates[open] summary{margin-bottom:14px}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+/* ---- tabs, goals, lots, trades, tools ---- */
+.tabs{display:flex;gap:8px;overflow-x:auto;padding-bottom:2px}
+.tab{font:inherit;font-weight:600;border:1px solid var(--line);background:var(--surface);color:var(--muted);border-radius:999px;padding:8px 18px;cursor:pointer;white-space:nowrap}
+.tab[aria-selected="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-fg)}
+.tabpanel[hidden]{display:none}
+.col{display:flex;flex-direction:column;gap:20px;max-width:760px}
+.hdr-actions{position:absolute;inset-block-start:4px;inset-inline-end:0;display:flex;gap:8px;flex-wrap:wrap}
+.digits{position:static}
+@media (max-width:520px){.hdr-actions{position:static;margin-top:10px}}
+.goals{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media (max-width:560px){.goals{grid-template-columns:1fr}}
+.goal{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px 16px;display:flex;flex-direction:column;gap:2px;box-shadow:var(--shadow);min-width:0}
+.goal .label{font-size:.85rem;color:var(--muted)}
+.goal .big{font-size:1.8rem;font-weight:600;line-height:1.2;align-self:flex-start}
+.goal.up .big{color:var(--up)} .goal.down .big{color:var(--down)}
+.goal .note{font-size:.85rem;color:var(--muted)}
+.mode{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.mode button{font:inherit;font-size:.82rem;border:1px solid var(--line);background:var(--surface-2);color:var(--fg);border-radius:999px;padding:3px 12px;cursor:pointer}
+.mode button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-fg)}
+.warns{display:flex;flex-direction:column;gap:8px}
+.warns .w{border:1px solid var(--warn);color:var(--fg);background:var(--surface);border-radius:12px;padding:10px 14px;font-size:.92rem}
+.warns .w::before{content:"تنبيه: ";font-weight:700;color:var(--warn)}
+.lots{display:flex;flex-direction:column;gap:10px}
+.lot{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) auto;gap:10px;align-items:end}
+@media (max-width:520px){.lot{grid-template-columns:1fr 1fr}.lot .btn{grid-column:1/-1}}
+.quota{height:8px;border-radius:999px;background:var(--line);overflow:hidden}
+.quota i{display:block;height:100%;background:var(--accent);width:0}
+.quota.full i{background:var(--down)}
+tr.off td{opacity:.5}
+tr.off td:first-child::after{content:" (فوق الحد اليومي)";font-size:.75rem;color:var(--warn)}
+.sum{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+.sum div{background:var(--surface-2);border:1px solid var(--line);border-radius:12px;padding:10px 12px;display:flex;flex-direction:column}
+.sum span{font-size:.8rem;color:var(--muted)}
+.sum b{font-size:1.15rem;font-weight:600}
+.tag{display:inline-block;font-size:.72rem;border-radius:999px;padding:1px 8px;border:1px solid var(--line);color:var(--muted);margin-inline-start:6px}
+.tag.ok{border-color:var(--up);color:var(--up)} .tag.bad{border-color:var(--down);color:var(--down)}
+.closebox{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.closebox input{width:7.5rem;padding:6px 8px;font-size:.9rem}
+.drop{border:2px dashed var(--line);border-radius:12px;padding:18px;text-align:center;color:var(--muted)}
+.drop input{display:none}
+.drop label{cursor:pointer;color:var(--accent);font-weight:600}
+.cmp{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px}
+.cmp div{border:1px solid var(--line);border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:2px;background:var(--surface-2)}
+.cmp div.best{border-color:var(--accent);background:var(--accent-soft)}
+.cmp b{font-size:1.2rem}
+.cmp span{font-size:.82rem;color:var(--muted)}
+.linkbox{display:flex;gap:8px;flex-wrap:wrap}
+.linkbox input{flex:1;min-width:0;direction:ltr;font-size:.8rem}
+.help .sub2{margin:10px 0 0;font-size:.8rem;color:var(--muted)}
 </style>
 </head>
 <body>
@@ -151,53 +204,112 @@ details.rates[open] summary{margin-bottom:14px}
   <header>
     <h1>أبيع على كام؟</h1>
     <p class="sub">أقل سعر بيع يغطي عمولة ثاندر ورسوم البورصة المصرية في الشراء والبيع.</p>
-    <button class="btn ghost digits" id="digitsBtn" type="button" aria-pressed="false">الأرقام: 123</button>
+    <div class="hdr-actions">
+      <button class="btn ghost" id="installBtn" type="button" hidden>ثبّت التطبيق</button>
+      <button class="btn ghost digits" id="digitsBtn" type="button" aria-pressed="false">الأرقام: 123</button>
+    </div>
   </header>
 
+  <nav class="tabs" role="tablist" aria-label="الأقسام">
+    <button class="tab" role="tab" id="tabbtn-calc" data-tab="calc" aria-selected="true">الحاسبة</button>
+    <button class="tab" role="tab" id="tabbtn-trades" data-tab="trades" aria-selected="false">سجل الصفقات</button>
+    <button class="tab" role="tab" id="tabbtn-tools" data-tab="tools" aria-selected="false">أدوات</button>
+  </nav>
+
+  <!-- ================= الحاسبة ================= -->
+  <div class="tabpanel" id="tab-calc" role="tabpanel">
   <div class="layout">
     <section class="panel inputs" aria-label="بيانات الصفقة">
       <h2>بيانات الصفقة</h2>
       <div class="grid">
-        <label class="field" data-help="name">اسم السهم (اختياري)
+        <label class="field wide" data-help="name">اسم السهم (اختياري)
           <span class="in"><input id="name" type="text" placeholder="مثلاً COMI" autocomplete="off"></span></label>
         <label class="field" data-help="qty">عدد الأسهم
-          <span class="in stepper"><button type="button" class="stp" data-for="qty" data-dir="1" aria-label="زيادة" tabindex="-1">+</button><input id="qty" class="num" type="text" inputmode="numeric" autocomplete="off" data-step="100" data-min="1" value="1000"><button type="button" class="stp" data-for="qty" data-dir="-1" aria-label="نقصان" tabindex="-1">−</button></span></label>
+          <span class="in stepper" data-id="qty" data-step="100" data-min="1" data-val="1000" data-im="numeric"></span></label>
         <label class="field" data-help="price">سعر الشراء (جنيه)
-          <span class="in stepper"><button type="button" class="stp" data-for="price" data-dir="1" aria-label="زيادة" tabindex="-1">+</button><input id="price" class="num" type="text" inputmode="decimal" autocomplete="off" data-step="0.01" data-min="0" value="12.35"><button type="button" class="stp" data-for="price" data-dir="-1" aria-label="نقصان" tabindex="-1">−</button></span></label>
-        <div class="field wide" data-help="plan"><span id="planLabel">الباقة</span><select id="plan" hidden>
-            <option value="std">العادية (2 جنيه + 0.1%)</option>
-            <option value="stdmin">العادية (0.1% بحد أدنى 2 جنيه)</option>
-            <option value="trader">ثاندر تريدر (بدون عمولة)</option>
-          </select><div class="cards" id="planCards" role="radiogroup" aria-labelledby="planLabel"></div></div>
+          <span class="in stepper" data-id="price" data-step="0.01" data-min="0" data-val="12.35" data-im="decimal"></span></label>
+      </div>
+      <div class="field wide" data-help="lots">
+        <div class="lots" id="lots"></div>
+        <button class="btn ghost" id="addLot" type="button" style="align-self:flex-start">+ ضيف دفعة شراء تانية</button>
+      </div>
+      <div class="field wide" data-help="plan"><span id="planLabel">الباقة</span><select id="plan" hidden>
+          <option value="std">العادية (2 جنيه + 0.1%)</option>
+          <option value="stdmin">العادية (0.1% بحد أدنى 2 جنيه)</option>
+          <option value="trader">ثاندر تريدر (بدون عمولة)</option>
+        </select><div class="cards" id="planCards" role="radiogroup" aria-labelledby="planLabel"></div></div>
+      <div class="field wide" id="quotaBox" data-help="used" hidden>
+        <span>أوامر تريدر اللي استخدمتها الشهر دا</span>
+        <span class="in stepper" data-id="used" data-step="1" data-min="0" data-val="0" data-im="numeric"></span>
+        <div class="quota" id="quotaBar"><i></i></div>
+        <span class="small" id="quotaTxt"></span>
+      </div>
+      <div class="grid">
         <label class="field" data-help="fills">عدد التنفيذات المتوقعة في البيع
-          <span class="in stepper"><button type="button" class="stp" data-for="fills" data-dir="1" aria-label="زيادة" tabindex="-1">+</button><input id="fills" class="num" type="text" inputmode="numeric" autocomplete="off" data-step="1" data-min="1" value="1"><button type="button" class="stp" data-for="fills" data-dir="-1" aria-label="نقصان" tabindex="-1">−</button></span></label>
+          <span class="in stepper" data-id="fills" data-step="1" data-min="1" data-val="1" data-im="numeric"></span></label>
         <label class="field" data-help="tick">وزن السعر المخصص (جنيه)
-          <span class="in stepper"><button type="button" class="stp" data-for="tick" data-dir="1" aria-label="زيادة" tabindex="-1">+</button><input id="tick" class="num" type="text" inputmode="decimal" autocomplete="off" data-step="0.01" data-min="0.001" value="0.05"><button type="button" class="stp" data-for="tick" data-dir="-1" aria-label="نقصان" tabindex="-1">−</button></span></label>
+          <span class="in stepper" data-id="tick" data-step="0.01" data-min="0.001" data-val="0.05" data-im="decimal"></span></label>
+        <label class="field" data-help="prev">سعر إغلاق أمس (اختياري)
+          <span class="in stepper" data-id="prev" data-step="0.01" data-min="0" data-val="" data-im="decimal"></span></label>
       </div>
       <label class="check field wide" data-help="t0"><input id="t0" type="checkbox" role="switch"><span>هبيع في نفس يوم الشراء (T0)</span></label>
+
+      <h2>أهدافك</h2>
+      <div class="grid">
+        <div class="field" data-help="target">
+          <span>هدف الربح</span>
+          <span class="in stepper" data-id="target" data-step="0.5" data-min="0" data-val="5" data-im="decimal"></span>
+          <span class="mode" id="targetMode"></span>
+        </div>
+        <div class="field" data-help="stop">
+          <span>أقصى خسارة (وقف الخسارة)</span>
+          <span class="in stepper" data-id="stopv" data-step="0.5" data-min="0" data-val="3" data-im="decimal"></span>
+          <span class="mode" id="stopMode"></span>
+        </div>
+      </div>
     </section>
 
     <aside class="panel help" aria-label="شرح الحقول">
       <details id="helpBox" open style="display:contents">
         <summary>شرح الحقول</summary>
         <dl>
-          <div class="item" id="help-name"><dt>اسم السهم</dt><dd>للتسمية بس. بيظهر في قايمة الصفقات المحفوظة ومش داخل في الحساب.</dd></div>
+          <div class="item" id="help-name"><dt>اسم السهم</dt><dd>للتسمية بس. بيظهر في سجل الصفقات ومش داخل في الحساب.</dd></div>
           <div class="item" id="help-qty"><dt>عدد الأسهم</dt><dd>الكمية اللي اشتريتها وناوي تبيعها كلها.</dd></div>
           <div class="item" id="help-price"><dt>سعر الشراء</dt><dd>سعر السهم الواحد اللي اشتريت بيه، بدون الرسوم.</dd></div>
-          <div class="item" id="help-plan"><dt>الباقة</dt><dd>بتحدد عمولة ثاندر. «العادية»: 2 جنيه ثابتة على كل أمر + 0.1% من قيمته. «ثاندر تريدر»: العمولة بتتحسب صفر (بترجعلك آخر اليوم) لأول 50 أمر في الشهر. رسوم البورصة والجهات الحكومية بتتدفع في كل الحالات.</dd></div>
+          <div class="item" id="help-lots"><dt>دفعات الشراء</dt><dd>لو اشتريت السهم على أكتر من مرة بأسعار مختلفة، ضيف كل مرة هنا. الحاسبة بتحسب رسوم كل أمر لوحده ومتوسط التكلفة وسعر التعادل الحقيقي.</dd></div>
+          <div class="item" id="help-plan"><dt>الباقة</dt><dd>بتحدد عمولة ثاندر. «العادية»: 2 جنيه ثابتة على كل أمر + 0.1% من قيمته. «ثاندر تريدر»: العمولة صفر (بترجعلك آخر اليوم) لأول 50 أمر في الشهر. رسوم البورصة والجهات الحكومية بتتدفع في كل الحالات.</dd></div>
+          <div class="item" id="help-used"><dt>أوامر تريدر المستخدمة</dt><dd>كل أمر شراء وكل أمر بيع بيتحسب أمر. بعد الـ 50 الحاسبة بتحسب عمولة عادية (0.1% بحد أدنى 2 جنيه). العدّاد بيرجع صفر مع أول الشهر.</dd></div>
           <div class="item" id="help-fills"><dt>عدد التنفيذات</dt><dd>أمر البيع ممكن يتنفذ على دفعات من أكتر من مشتري. كل دفعة بيتحسب عليها حد أدنى 1 جنيه رسوم رقابة مالية. لو مش متأكد اكتب 1. الخانة دي مش عدد الأسهم.</dd></div>
-          <div class="item" id="help-tick"><dt>وزن السعر المخصص</dt><dd>أصغر خطوة سعر تحب تقرّب عليها، مثلاً 0.05 أو 0.5. السعر بيتقرّب لفوق علشان يغطي الرسوم. بيظهر كزر جنب القرش والعشرة قروش والجنيه.</dd></div>
+          <div class="item" id="help-tick"><dt>وزن السعر المخصص</dt><dd>أصغر خطوة سعر تحب تقرّب عليها، مثلاً 0.05 أو 0.5. السعر بيتقرّب لفوق علشان يغطي الرسوم. وفيه زر «حسب البورصة» بيختار الوزن من مستوى السعر.</dd></div>
+          <div class="item" id="help-prev"><dt>سعر إغلاق أمس</dt><dd>لو كتبته، الحاسبة بتحسب الحد الأعلى والأدنى اليومي (نسبته في «نسب الرسوم») وبتنبهك لو سعر البيع فوق الحد.</dd></div>
           <div class="item" id="help-t0"><dt>البيع في نفس اليوم (T0)</dt><dd>لو بعت في نفس جلسة الشراء، ضريبة الدمغة بتبقى 0.025% بدل 0.05%، لأن نصها بيترجعلك بعد الجلسة.</dd></div>
+          <div class="item" id="help-target"><dt>هدف الربح</dt><dd>اكتب الربح الصافي اللي عايزه بعد كل الرسوم، بالجنيه أو كنسبة من اللي دفعته. الحاسبة بتقولك تبيع على كام.</dd></div>
+          <div class="item" id="help-stop"><dt>وقف الخسارة</dt><dd>أقصى خسارة صافية تتحملها. الحاسبة بتقولك السعر اللي لو نزل لعنده تخرج علشان خسارتك ما تزيدش عن الرقم دا.</dd></div>
         </dl>
+        <p class="sub2">الأرقام تقديرية وبتتحسب من نسب الرسوم المكتوبة تحت. فاتورة ثاندر هي المرجع.</p>
       </details>
     </aside>
 
     <div class="results">
+      <div class="warns" id="warns" aria-live="polite"></div>
       <section class="hero" aria-live="polite">
         <span class="label">أقل سعر بيع على وزن <span id="heroTick">القرش</span></span>
         <span class="big num" id="heroPrice">—</span>
         <span class="note" id="heroNote"></span>
       </section>
+
+      <div class="goals">
+        <section class="goal up" aria-live="polite">
+          <span class="label" id="goalLabel">سعر هدف الربح</span>
+          <span class="big num" id="goalPrice">—</span>
+          <span class="note" id="goalNote"></span>
+        </section>
+        <section class="goal down" aria-live="polite">
+          <span class="label" id="stopLabel">سعر وقف الخسارة</span>
+          <span class="big num" id="stopPrice">—</span>
+          <span class="note" id="stopNote"></span>
+        </section>
+      </div>
 
       <section class="panel">
         <h2>السعر حسب الوزن</h2>
@@ -214,7 +326,7 @@ details.rates[open] summary{margin-bottom:14px}
       <section class="panel">
         <div class="row">
           <h2>الأسعار خطوة بخطوة (على وزن <span id="stepTick">القرش</span>)</h2>
-          <div class="stepsctl"><span>عدد الخطوات</span><span class="in stepper"><button type="button" class="stp" data-for="steps" data-dir="1" aria-label="زيادة" tabindex="-1">+</button><input id="steps" class="num" type="text" inputmode="numeric" autocomplete="off" data-step="1" data-min="1" value="20"><button type="button" class="stp" data-for="steps" data-dir="-1" aria-label="نقصان" tabindex="-1">−</button></span></div>
+          <div class="stepsctl"><span>عدد الخطوات</span><span class="in stepper" data-id="steps" data-step="1" data-min="1" data-val="20" data-im="numeric"></span></div>
         </div>
         <div class="tablebox">
           <table>
@@ -231,26 +343,78 @@ details.rates[open] summary{margin-bottom:14px}
           <div><h3>الشراء، قيمة <span class="num" id="buyVal"></span></h3><dl id="buyFees"></dl></div>
           <div><h3>البيع عند أقل سعر، قيمة <span class="num" id="sellVal"></span></h3><dl id="sellFees"></dl></div>
         </div>
-        <p class="small">محتاج تحصّل <span class="num" id="needed"></span> جنيه من البيع علشان ترجّع اللي دفعته.</p>
+        <p class="small">متوسط التكلفة للسهم بعد الرسوم: <span class="num" id="avgCost"></span> جنيه. محتاج تحصّل <span class="num" id="needed"></span> جنيه من البيع علشان ترجّع اللي دفعته.</p>
       </section>
 
       <section class="panel">
         <div class="row">
-          <h2>الصفقات المحفوظة</h2>
-          <button class="btn" id="save" type="button">احفظ الصفقة</button>
+          <h2>احفظ أو شارك</h2>
+          <div class="row" style="gap:8px">
+            <button class="btn ghost" id="shareBtn" type="button">رابط مشاركة</button>
+            <button class="btn" id="save" type="button">احفظ الصفقة</button>
+          </div>
+        </div>
+        <div class="linkbox" id="linkBox" hidden>
+          <input id="linkOut" type="text" readonly aria-label="رابط المشاركة">
+          <button class="btn ghost" id="copyLink" type="button">انسخ</button>
         </div>
         <span class="status" id="status"></span>
-        <ul class="hist" id="hist"></ul>
-        <p class="empty" id="histEmpty">لسه مفيش صفقات محفوظة. اكتب البيانات فوق واضغط «احفظ الصفقة» علشان ترجعلها بعدين.</p>
       </section>
 
       <details class="panel rates">
-        <summary>نسب الرسوم (تقدر تعدّلها)</summary>
+        <summary>نسب الرسوم والإعدادات (تقدر تعدّلها)</summary>
         <div class="grid" id="rates"></div>
         <button class="btn ghost" id="resetRates" type="button" style="align-self:flex-start">رجّع النسب الافتراضية</button>
-        <p class="small">المصدر: صفحة رسوم ثاندر (أغسطس 2026). الرسوم بتتحسب على الشراء والبيع. رسوم الرقابة المالية حدها الأدنى 1 جنيه لكل تنفيذ، فلو أمر البيع اتقسم على كذا تنفيذ كل تنفيذ صغير بيزوّد حوالي 1 جنيه. في ثاندر تريدر العمولة بتتخصم وترجعلك آخر اليوم، وده لأول 50 أمر في الشهر بس. الأرقام تقريبية والفاتورة في التطبيق هي المرجع.</p>
+        <p class="small">المصدر: صفحة رسوم ثاندر (أغسطس 2026). الرسوم بتتحسب على الشراء والبيع. رسوم الرقابة المالية حدها الأدنى 1 جنيه لكل تنفيذ. في ثاندر تريدر العمولة بتتخصم وترجعلك آخر اليوم، وده لأول 50 أمر في الشهر بس.</p>
+        <p class="small">وزن السعر الرسمي والحد اليومي قيم افتراضية غير مؤكدة من البورصة (وزن 0.001 تحت 2 جنيه و0.01 من 2 جنيه فوق، وحد 10%). راجع قواعد البورصة وعدّلها لو مختلفة.</p>
       </details>
     </div>
+  </div>
+  </div>
+
+  <!-- ================= سجل الصفقات ================= -->
+  <div class="tabpanel col" id="tab-trades" role="tabpanel" hidden>
+    <section class="panel">
+      <h2>ملخص</h2>
+      <div class="sum" id="sum"></div>
+      <div class="row">
+        <button class="btn ghost" id="csvBtn" type="button">تصدير CSV (Excel)</button>
+        <span class="small">الصفقات بتتحفظ على الجهاز دا.</span>
+      </div>
+    </section>
+    <section class="panel">
+      <h2>الصفقات</h2>
+      <ul class="hist" id="hist"></ul>
+      <p class="empty" id="histEmpty">لسه مفيش صفقات. احفظ صفقة من الحاسبة، أو استورد فواتير ثاندر من قسم «أدوات».</p>
+    </section>
+  </div>
+
+  <!-- ================= أدوات ================= -->
+  <div class="tabpanel col" id="tab-tools" role="tabpanel" hidden>
+    <section class="panel">
+      <h2>استيراد فاتورة ثاندر (PDF)</h2>
+      <p class="small">الملف بيتقرا على جهازك بس ومش بيتبعت لأي مكان. الصفقات اللي فيها شراء وبيع لنفس السهم بتتقفل وبيتحسب ربحها الحقيقي بالرسوم الفعلية.</p>
+      <div class="drop">
+        <label for="pdfIn">اختار ملف الفاتورة</label>
+        <input id="pdfIn" type="file" accept="application/pdf">
+        <div class="small" id="pdfStatus"></div>
+      </div>
+      <ul class="hist" id="impList"></ul>
+      <button class="btn" id="impSave" type="button" hidden>أضف للسجل</button>
+    </section>
+
+    <section class="panel">
+      <h2>مقارنة الباقات</h2>
+      <p class="small">بتقارن عمولة ثاندر بس، لأن رسوم البورصة والجهات الحكومية واحدة في الباقتين.</p>
+      <div class="grid">
+        <label class="field">عدد الأوامر في الشهر (شراء وبيع)
+          <span class="in stepper" data-id="cmpN" data-step="5" data-min="0" data-val="40" data-im="numeric"></span></label>
+        <label class="field">متوسط قيمة الأمر (جنيه)
+          <span class="in stepper" data-id="cmpV" data-step="1000" data-min="0" data-val="10000" data-im="numeric"></span></label>
+      </div>
+      <div class="cmp" id="cmp"></div>
+      <p class="small" id="cmpNote"></p>
+    </section>
   </div>
 </div>
 
@@ -262,7 +426,10 @@ const DEFAULT_RATES = {
   mcdrPct: 0.01, mcdrMax: 5000,
   fraPct: 0.005, fraMin: 1, fraMax: 250,
   riskPct: 0.005, riskMax: 5000,
-  stampT1: 0.05, stampT0: 0.025
+  stampT1: 0.05, stampT0: 0.025,
+  traderFree: 50, traderMonth: 245, traderYear: 2646,
+  tickSplit: 2, tickLow: 0.001, tickHigh: 0.01,
+  limitPct: 10
 };
 const RATE_LABELS = {
   thndrPct:"عمولة ثاندر %", thndrFixed:"عمولة ثاندر ثابتة (ج)",
@@ -270,16 +437,20 @@ const RATE_LABELS = {
   mcdrPct:"مصر للمقاصة %", mcdrMax:"المقاصة حد أقصى (ج)",
   fraPct:"الرقابة المالية %", fraMin:"الرقابة حد أدنى (ج)", fraMax:"الرقابة حد أقصى (ج)",
   riskPct:"صندوق حماية المستثمر %", riskMax:"الصندوق حد أقصى (ج)",
-  stampT1:"الدمغة (بيع بعد يوم أو أكتر) %", stampT0:"الدمغة (بيع نفس اليوم) %"
+  stampT1:"الدمغة (بيع بعد يوم أو أكتر) %", stampT0:"الدمغة (بيع نفس اليوم) %",
+  traderFree:"أوامر تريدر المجانية في الشهر", traderMonth:"اشتراك تريدر الشهري (ج)", traderYear:"اشتراك تريدر السنوي (ج)",
+  tickSplit:"السعر اللي يتغير عنده وزن السعر (ج)", tickLow:"وزن السعر تحت الحد (ج)", tickHigh:"وزن السعر فوق الحد (ج)",
+  limitPct:"الحد اليومي للسعر %"
 };
-const TICKS = [
-  {v:0.01, name:"القرش"}, {v:0.1, name:"العشرة قروش"}, {v:1, name:"الجنيه"}
-];
+const TICKS = [{v:"auto", name:"حسب البورصة"}, {v:0.01, name:"القرش"}, {v:0.1, name:"العشرة قروش"}, {v:1, name:"الجنيه"}];
 
 const $ = id => document.getElementById(id);
 let rates = {...DEFAULT_RATES};
 let selectedTick = 0.01;
 let lastResult = null;
+let lots2 = [];                       // extra buy lots: [{qty, price}]
+let targetMode = "pct", stopMode = "pct";
+let used = 0, usedMonth = "";
 
 const AR_DIGITS = "٠١٢٣٤٥٦٧٨٩";
 // Accept Arabic-Indic digits and separators typed on an Arabic keyboard.
@@ -288,15 +459,34 @@ const num = id => parseFloat(norm($(id).value));
 let digitsAr = false;
 const fmt = (x, d=2) => Number.isFinite(x) ? x.toLocaleString(digitsAr ? "ar-EG" : "en-US",{minimumFractionDigits:d,maximumFractionDigits:d}) : "—";
 const decimalsOf = t => { const s = String(t); return s.includes(".") ? s.split(".")[1].length : 0; };
+const tickFor = P => P < rates.tickSplit ? rates.tickLow : rates.tickHigh;
 const tickName = t => (TICKS.find(k => k.v === t) || {name: fmt(t, decimalsOf(t)) + " ج"}).name;
+const monthKey = () => { const d = new Date(); return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0"); };
 
+/* ---------- number steppers (built from <span class="stepper" data-id=...>) ---------- */
+function mkStepper(host) {
+  const d = host.dataset;
+  const mkBtn = (txt, dir, label) => {
+    const b = document.createElement("button");
+    b.type = "button"; b.className = "stp"; b.textContent = txt; b.dataset.for = d.id; b.dataset.dir = dir;
+    b.setAttribute("aria-label", label); b.tabIndex = -1; return b;
+  };
+  const inp = document.createElement("input");
+  inp.id = d.id; inp.className = "num"; inp.type = "text"; inp.inputMode = d.im || "decimal";
+  inp.autocomplete = "off"; inp.value = d.val || ""; inp.dataset.step = d.step; inp.dataset.min = d.min;
+  if (d.lot !== undefined) { inp.dataset.lot = d.lot; inp.dataset.f = d.f; }
+  host.append(mkBtn("+", 1, "زيادة"), inp, mkBtn("−", -1, "نقصان"));
+}
+document.querySelectorAll(".stepper[data-id]").forEach(mkStepper);
+
+/* ---------- fee model ---------- */
 const r2 = x => Math.round(x * 100 + 1e-7) / 100;
-// fills: how many executions the order splits into; the FRA minimum (1 EGP) is charged on each one.
-function fees(value, s, fills = 1) {
+// fills: executions the order splits into (FRA minimum is charged on each one).
+// free: Thndr Trader order that is still inside the monthly free quota.
+function fees(value, s, fills = 1, free = false) {
   const r = rates, p = x => x / 100;
-  let thndr = 0;
-  if (s.plan === "std") thndr = r.thndrFixed + value * p(r.thndrPct);
-  else if (s.plan === "stdmin") thndr = Math.max(r.thndrFixed, value * p(r.thndrPct));
+  const std = r.thndrFixed + value * p(r.thndrPct), min = Math.max(r.thndrFixed, value * p(r.thndrPct));
+  let thndr = s.plan === "std" ? std : s.plan === "stdmin" ? min : (free ? 0 : min);
   const egx = Math.min(value * p(r.egxPct), r.egxMax);
   const mcdr = Math.min(value * p(r.mcdrPct), r.mcdrMax);
   const fra = value > 0 ? Math.min(Math.max(value * p(r.fraPct), r.fraMin), r.fraMax) + (fills - 1) * r.fraMin : 0;
@@ -306,38 +496,64 @@ function fees(value, s, fills = 1) {
   return {items, total: items.reduce((a, [, v]) => a + v, 0)};
 }
 
+// s: {lots:[{qty,price}], plan, t0, fills, used}
 function compute(s) {
-  const buyVal = s.qty * s.price;
-  const buyFees = fees(buyVal, s);
-  const cost = buyVal + buyFees.total;
-  const net = P => P * s.qty - fees(P * s.qty, s, s.fills).total;
-  // net() rises with price (fee rates are well under 100%), so bisect for the exact break-even.
-  let lo = 0, hi = Math.max(s.price, 0.01) * 2 + 10;
-  while (net(hi) < cost) hi *= 2;
-  for (let i = 0; i < 200; i++) { const m = (lo + hi) / 2; net(m) >= cost ? hi = m : lo = m; }
-  const exact = hi;
-  const atTick = t => {
-    const d = decimalsOf(t);
-    let n = Math.ceil(exact / t - 1e-9);
-    let P = +(n * t).toFixed(d);
-    while (net(P) < cost - 1e-9) { n++; P = +(n * t).toFixed(d); }
-    return {tick: t, price: P, profit: net(P) - cost, rise: (P / s.price - 1) * 100};
+  const lots = s.lots;
+  const lotFees = lots.map((l, i) => fees(l.qty * l.price, s, 1, s.used + i < rates.traderFree));
+  const qty = lots.reduce((a, l) => a + l.qty, 0);
+  const buyVal = lots.reduce((a, l) => a + l.qty * l.price, 0);
+  const buyFees = {
+    items: lotFees[0].items.map(([k], i) => [k, lotFees.reduce((a, f) => a + f.items[i][1], 0)]),
+    total: lotFees.reduce((a, f) => a + f.total, 0)
   };
-  return {buyVal, buyFees, cost, exact, atTick, netAt: net, sellFeesAt: P => fees(P * s.qty, s, s.fills)};
+  const cost = buyVal + buyFees.total;
+  const avg = buyVal / qty;
+  const sellFree = s.used + lots.length < rates.traderFree;
+  const sellFeesAt = P => fees(P * qty, s, s.fills, sellFree);
+  const net = P => P * qty - sellFeesAt(P).total;
+  // net() rises with price (fee rates are far below 100%), so bisect for the exact price giving `profit`.
+  const exactFor = profit => {
+    const need = cost + profit;
+    if (net(0) >= need) return 0;
+    let lo = 0, hi = Math.max(avg, 0.01) * 2 + 10;
+    while (net(hi) < need) hi *= 2;
+    for (let i = 0; i < 200; i++) { const m = (lo + hi) / 2; net(m) >= need ? hi = m : lo = m; }
+    return hi;
+  };
+  const atTick = (t, profit = 0) => {
+    const need = cost + profit, exact = exactFor(profit);
+    const up = tk => {
+      const d = decimalsOf(tk);
+      let n = Math.ceil(exact / tk - 1e-9), P = +(n * tk).toFixed(d);
+      while (net(P) < need - 1e-9) { n++; P = +(n * tk).toFixed(d); }
+      return P;
+    };
+    let tk = t === "auto" ? tickFor(exact) : t, P = up(tk);
+    if (t === "auto" && tickFor(P) !== tk) { tk = tickFor(P); P = up(tk); }
+    return {tick: tk, price: P, profit: net(P) - cost, rise: (P / avg - 1) * 100, exact};
+  };
+  return {buyVal, qty, avg, buyFees, cost, exact: exactFor(0), atTick, netAt: net, sellFeesAt, sellFree, orders: lots.length + 1};
 }
 
 function readState() {
+  const lots = [];
+  for (const l of [{qty: num("qty"), price: num("price")}, ...lots2])
+    if (l.qty >= 1 && l.price > 0) lots.push({qty: Math.floor(l.qty), price: l.price});
+  const qty = lots.reduce((a, l) => a + l.qty, 0);
+  const val = lots.reduce((a, l) => a + l.qty * l.price, 0);
   return {
     name: $("name").value.trim(),
-    qty: Math.max(0, Math.floor(num("qty") || 0)),
-    price: Math.max(0, num("price") || 0),
+    lots, qty, price: qty ? val / qty : 0,
     plan: $("plan").value,
     t0: $("t0").checked,
     fills: Math.max(1, Math.floor(num("fills") || 1)),
-    customTick: num("tick") > 0 ? num("tick") : 0.05
+    customTick: num("tick") > 0 ? num("tick") : 0.05,
+    used: Math.max(0, Math.floor(num("used") || 0)),
+    prev: num("prev") > 0 ? num("prev") : 0
   };
 }
 
+/* ---------- plan cards, quota, target/stop modes ---------- */
 const PLANS = {
   std: ["العادية", "2 جنيه + 0.1% من قيمة الأمر"],
   stdmin: ["العادية بحد أدنى", "0.1% وبحد أدنى 2 جنيه"],
@@ -357,8 +573,49 @@ function syncPlan() {
     }
   }
   for (const b of box.children) b.setAttribute("aria-checked", String(b.dataset.v === $("plan").value));
+  $("quotaBox").hidden = $("plan").value !== "trader";
+}
+function buildModes() {
+  const make = (boxId, get, set, stepId) => {
+    const box = $(boxId); box.innerHTML = "";
+    for (const [v, t] of [["pct", "% من اللي دفعته"], ["amt", "مبلغ بالجنيه"]]) {
+      const b = document.createElement("button"); b.type = "button"; b.textContent = t;
+      b.setAttribute("aria-pressed", String(get() === v));
+      b.onclick = () => { set(v); $(stepId).dataset.step = v === "pct" ? "0.5" : "100"; buildModes(); saveSettings(); render(); };
+      box.append(b);
+    }
+  };
+  make("targetMode", () => targetMode, v => targetMode = v, "target");
+  make("stopMode", () => stopMode, v => stopMode = v, "stopv");
 }
 
+/* ---------- extra buy lots ---------- */
+function renderLots() {
+  const box = $("lots"); box.innerHTML = "";
+  lots2.forEach((l, i) => {
+    const row = document.createElement("div"); row.className = "lot";
+    const mk = (label, f, step, mn, val, im) => {
+      const w = document.createElement("label"); w.className = "field"; w.textContent = label;
+      const h = document.createElement("span"); h.className = "in stepper";
+      h.dataset.id = "lot" + f + i; h.dataset.lot = i; h.dataset.f = f;
+      h.dataset.step = step; h.dataset.min = mn; h.dataset.val = val; h.dataset.im = im;
+      w.append(h); mkStepper(h); return w;
+    };
+    const del = document.createElement("button"); del.type = "button"; del.className = "btn ghost danger"; del.textContent = "امسح";
+    del.onclick = () => { lots2.splice(i, 1); renderLots(); saveSettings(); render(); };
+    row.append(mk(`دفعة ${i + 2}: الأسهم`, "qty", 100, 1, l.qty || "", "numeric"),
+               mk("السعر (جنيه)", "price", 0.01, 0, l.price || "", "decimal"), del);
+    box.append(row);
+  });
+}
+function syncLotsFromDOM() {
+  document.querySelectorAll("input[data-lot]").forEach(inp => {
+    const l = lots2[+inp.dataset.lot]; if (!l) return;
+    l[inp.dataset.f] = parseFloat(norm(inp.value)) || 0;
+  });
+}
+
+/* ---------- render ---------- */
 function renderFees(el, f) {
   el.innerHTML = "";
   for (const [k, v] of f.items) {
@@ -369,6 +626,23 @@ function renderFees(el, f) {
   const dt = document.createElement("dt"); dt.className = "tot"; dt.textContent = "الإجمالي";
   const dd = document.createElement("dd"); dd.className = "num tot"; dd.textContent = fmt(f.total);
   el.append(dt, dd);
+}
+
+function dailyLimits(prev) {
+  if (!prev) return null;
+  const hi = prev * (1 + rates.limitPct / 100), lo = prev * (1 - rates.limitPct / 100);
+  const th = tickFor(hi), tl = tickFor(lo);
+  return {hi: +(Math.floor(hi / th + 1e-9) * th).toFixed(decimalsOf(th)), lo: +(Math.ceil(lo / tl - 1e-9) * tl).toFixed(decimalsOf(tl))};
+}
+
+function setNote(el, parts) {
+  el.innerHTML = "";
+  for (const p of parts) {
+    const sp = document.createElement("span");
+    if (typeof p === "string") sp.textContent = p;
+    else { sp.className = "num " + (p.cls || ""); sp.textContent = p.t; }
+    el.append(sp);
+  }
 }
 
 function render() {
@@ -387,75 +661,156 @@ function render() {
     seg.append(b);
   }
 
+  // Trader quota meter
+  const free = rates.traderFree, orders = Math.max(1, s.lots.length) + 1;
+  $("quotaBar").firstElementChild.style.width = Math.min(100, s.used / free * 100) + "%";
+  $("quotaBar").classList.toggle("full", s.used >= free);
+  $("quotaTxt").textContent = s.used >= free
+    ? `خلّصت الأوامر المجانية. أي أمر دلوقتي بعمولة عادية.`
+    : `فاضل ${fmt(free - s.used, 0)} أمر مجاني. الصفقة دي هتستهلك ${fmt(orders, 0)} (شراء وبيع).`;
+  $("target").dataset.step = targetMode === "pct" ? "0.5" : "100";
+  $("stopv").dataset.step = stopMode === "pct" ? "0.5" : "100";
+
+  const warns = [];
   if (!s.qty || !s.price) {
     $("heroPrice").textContent = "—";
     $("heroNote").textContent = "اكتب عدد الأسهم وسعر الشراء.";
-    $("ladder").innerHTML = ""; $("stepRows").innerHTML = ""; lastResult = null; return;
+    for (const id of ["goalPrice", "stopPrice"]) $(id).textContent = "—";
+    for (const id of ["goalNote", "stopNote"]) $(id).textContent = "";
+    $("ladder").innerHTML = ""; $("stepRows").innerHTML = ""; $("warns").innerHTML = ""; lastResult = null;
+    renderCompare(); return;
   }
 
   const c = compute(s);
-  const rows = ticks.map(c.atTick);
-  const sel = rows.find(r => r.tick === selectedTick);
+  const rows = ticks.map(t => c.atTick(t));
+  const idx = ticks.indexOf(selectedTick);
+  const sel = rows[idx];
   lastResult = {s, c, sel};
+  const isAuto = selectedTick === "auto";
+  const dec = P => decimalsOf(isAuto ? tickFor(P) : selectedTick);
+  const lim = dailyLimits(s.prev);
 
   $("heroTick").textContent = tickName(selectedTick);
-  $("heroPrice").textContent = fmt(sel.price, decimalsOf(selectedTick));
-  $("heroNote").innerHTML = "";
-  const n1 = document.createElement("span");
-  n1.textContent = `ارتفاع ${fmt(sel.rise)}% عن سعر الشراء · صافي عند السعر دا: `;
-  const n2 = document.createElement("span");
-  n2.className = "num " + (sel.profit >= 0 ? "pos" : "neg");
-  n2.textContent = (sel.profit >= 0 ? "+" : "") + fmt(sel.profit) + " ج";
-  $("heroNote").append(n1, n2);
+  $("heroPrice").textContent = fmt(sel.price, dec(sel.price));
+  setNote($("heroNote"), [`ارتفاع ${fmt(sel.rise)}% عن متوسط الشراء · صافي عند السعر دا: `,
+    {t: (sel.profit >= 0 ? "+" : "") + fmt(sel.profit) + " ج", cls: sel.profit >= 0 ? "pos" : "neg"}]);
 
+  // Goals
+  const costAmt = c.cost;
+  const tv = num("target"), sv = num("stopv");
+  const targetAmt = Number.isFinite(tv) && tv > 0 ? (targetMode === "pct" ? tv / 100 * costAmt : tv) : 0;
+  const stopAmt = Number.isFinite(sv) && sv > 0 ? (stopMode === "pct" ? sv / 100 * costAmt : sv) : 0;
+  let goal = null, stop = null;
+  if (targetAmt > 0) goal = c.atTick(selectedTick, targetAmt);
+  if (stopAmt > 0 && stopAmt < costAmt) stop = c.atTick(selectedTick, -stopAmt);
+  $("goalLabel").textContent = targetAmt > 0 ? `سعر هدف الربح (${fmt(targetAmt)} ج صافي)` : "سعر هدف الربح";
+  $("stopLabel").textContent = stopAmt > 0 ? `سعر وقف الخسارة (${fmt(stopAmt)} ج صافي)` : "سعر وقف الخسارة";
+  if (goal) {
+    $("goalPrice").textContent = fmt(goal.price, dec(goal.price));
+    setNote($("goalNote"), [`ارتفاع ${fmt(goal.rise)}% · صافي الربح: `, {t: "+" + fmt(goal.profit) + " ج", cls: "pos"}]);
+  } else { $("goalPrice").textContent = "—"; $("goalNote").textContent = "اكتب هدف الربح في الحقول."; }
+  if (stop) {
+    $("stopPrice").textContent = fmt(stop.price, dec(stop.price));
+    setNote($("stopNote"), [`نزول ${fmt(-stop.rise)}% عن المتوسط · صافي الخسارة: `, {t: fmt(stop.profit) + " ج", cls: "neg"}]);
+  } else { $("stopPrice").textContent = "—"; $("stopNote").textContent = "اكتب أقصى خسارة تتحملها."; }
+
+  // Warnings
+  if (lim) {
+    if (sel.price > lim.hi) warns.push(`سعر التعادل (${fmt(sel.price, dec(sel.price))}) أعلى من الحد اليومي (${fmt(lim.hi, decimalsOf(tickFor(lim.hi)))}). مش هتقدر تبيع بيه في نفس اليوم.`);
+    else if (goal && goal.price > lim.hi) warns.push(`سعر هدفك (${fmt(goal.price, dec(goal.price))}) أعلى من الحد اليومي (${fmt(lim.hi, decimalsOf(tickFor(lim.hi)))}). هتحتاج أكتر من يوم.`);
+    if (stop && stop.price < lim.lo) warns.push(`سعر وقف الخسارة (${fmt(stop.price, dec(stop.price))}) تحت الحد اليومي الأدنى (${fmt(lim.lo, decimalsOf(tickFor(lim.lo)))}). السهم مش هيوصله في يوم واحد.`);
+  }
+  if (s.plan === "trader" && s.used + orders > free) {
+    const over = s.used + orders - free;
+    warns.push(`${fmt(Math.min(over, orders), 0)} من أوامر الصفقة دي بعد الـ ${fmt(free, 0)} المجانية، فاتحسب عليها عمولة عادية.`);
+  }
+  if (s.fills > 1 && s.fills > s.qty) warns.push("عدد التنفيذات أكبر من عدد الأسهم. غالباً كتبت عدد الأسهم بالغلط، اكتب 1 لو مش متأكد.");
+  else if (s.fills > 10) warns.push(`عدد التنفيذات ${fmt(s.fills, 0)} كبير، وكل تنفيذ بيزوّد 1 جنيه رسوم رقابة.`);
+  const wb = $("warns"); wb.innerHTML = "";
+  for (const w of warns) { const d = document.createElement("div"); d.className = "w"; d.textContent = w; wb.append(d); }
+
+  // Tick ladder
   const tb = $("ladder"); tb.innerHTML = "";
-  for (const r of rows) {
+  rows.forEach((r, i) => {
+    const t = ticks[i];
     const tr = document.createElement("tr");
-    if (r.tick === selectedTick) tr.className = "sel";
+    if (t === selectedTick) tr.className = "sel";
     tr.innerHTML = `<td></td><td class="n num"></td><td class="n num pos"></td><td class="n num"></td>`;
-    tr.children[0].textContent = tickName(r.tick);
+    tr.children[0].textContent = tickName(t);
     tr.children[1].textContent = fmt(r.price, decimalsOf(r.tick));
     tr.children[2].textContent = "+" + fmt(r.profit);
     tr.children[3].textContent = fmt(r.rise) + "%";
     tb.append(tr);
-  }
+  });
   $("exact").textContent = fmt(c.exact, 4);
+
+  // Steps
   $("stepTick").textContent = tickName(selectedTick);
   const sb = $("stepRows"); sb.innerHTML = "";
   const n = Math.min(100, Math.max(1, Math.floor(num("steps") || 20)));
-  const dd = decimalsOf(selectedTick);
+  let P = sel.price;
   for (let k = 0; k < n; k++) {
-    const P = +(sel.price + k * selectedTick).toFixed(dd);
     const profit = c.netAt(P) - c.cost;
     const tr = document.createElement("tr");
     if (k === 0) tr.className = "sel";
+    if (lim && P > lim.hi) tr.className += " off";
     tr.innerHTML = `<td class="n num"></td><td class="n num"></td><td class="n num"></td><td class="n num"></td>`;
     tr.children[0].textContent = k === 0 ? "التعادل" : "+" + k;
-    tr.children[1].textContent = fmt(P, dd);
+    tr.children[1].textContent = fmt(P, dec(P));
     tr.children[2].textContent = (profit >= 0 ? "+" : "") + fmt(profit);
     tr.children[2].classList.add(profit >= 0 ? "pos" : "neg");
-    tr.children[3].textContent = fmt((P / s.price - 1) * 100) + "%";
+    tr.children[3].textContent = fmt((P / c.avg - 1) * 100) + "%";
     sb.append(tr);
+    const stp = isAuto ? tickFor(P) : selectedTick;
+    P = +(P + stp).toFixed(decimalsOf(stp));
   }
   $("buyVal").textContent = fmt(c.buyVal);
-  $("sellVal").textContent = fmt(sel.price * s.qty);
+  $("sellVal").textContent = fmt(sel.price * c.qty);
   renderFees($("buyFees"), c.buyFees);
   renderFees($("sellFees"), c.sellFeesAt(sel.price));
   $("needed").textContent = fmt(c.cost);
+  $("avgCost").textContent = fmt(c.cost / c.qty, 4);
+  renderCompare();
 }
 
 function renderRates() {
   const box = $("rates"); box.innerHTML = "";
   for (const k of Object.keys(DEFAULT_RATES)) {
-    const l = document.createElement("label"); l.textContent = RATE_LABELS[k];
+    const l = document.createElement("label"); l.className = "field"; l.textContent = RATE_LABELS[k];
     const i = document.createElement("input");
-    i.type = "number"; i.step = "any"; i.min = "0"; i.className = "num"; i.id = "rate_" + k; i.value = rates[k];
-    i.oninput = () => { const v = parseFloat(i.value); if (Number.isFinite(v) && v >= 0) { rates[k] = v; saveSettings(); render(); } };
+    i.type = "text"; i.inputMode = "decimal"; i.className = "num"; i.id = "rate_" + k; i.value = rates[k];
+    i.oninput = () => { const v = parseFloat(norm(i.value)); if (Number.isFinite(v) && v >= 0) { rates[k] = v; saveSettings(); render(); } };
     l.append(i); box.append(l);
   }
 }
 
-/* ---------- Storage: per-person db when signed in, browser storage otherwise ---------- */
+/* ---------- plan comparison ---------- */
+function renderCompare() {
+  const n = Math.max(0, Math.floor(num("cmpN") || 0)), v = Math.max(0, num("cmpV") || 0);
+  const per = Math.max(rates.thndrFixed, v * rates.thndrPct / 100);        // commission after the free quota
+  const stdOrder = rates.thndrFixed + v * rates.thndrPct / 100;              // standard plan
+  const std = n * stdOrder;
+  const trader = rates.traderMonth + Math.max(0, n - rates.traderFree) * per;
+  const traderY = rates.traderYear / 12 + Math.max(0, n - rates.traderFree) * per;
+  const opts = [["العادية", std, "عمولة ثاندر في الشهر"], ["تريدر شهري", trader, `${fmt(rates.traderMonth, 0)} ج اشتراك`],
+                ["تريدر سنوي", traderY, `${fmt(rates.traderYear, 0)} ج في السنة`]];
+  const best = Math.min(...opts.map(o => o[1]));
+  const box = $("cmp"); box.innerHTML = "";
+  for (const [t, val, sub] of opts) {
+    const d = document.createElement("div"); if (val === best) d.className = "best";
+    const a = document.createElement("span"); a.textContent = t;
+    const b = document.createElement("b"); b.className = "num"; b.textContent = fmt(val) + " ج";
+    const c = document.createElement("span"); c.textContent = sub;
+    d.append(a, b, c); box.append(d);
+  }
+  const be = Math.ceil(rates.traderYear / 12 / stdOrder);
+  const be2 = Math.ceil(rates.traderMonth / stdOrder);
+  $("cmpNote").textContent = stdOrder > 0
+    ? `تريدر الشهري بيوفّر لو بتنفذ أكتر من ${fmt(be2, 0)} أمر في الشهر (والسنوي أكتر من ${fmt(be, 0)}) بمتوسط ${fmt(v, 0)} جنيه للأمر.`
+    : "";
+}
+
+/* ---------- storage: browser storage, plus the account store when running inside claude.ai ---------- */
 let db = null, userCol = null, trades = [];
 const LS_SETTINGS = "be_settings", LS_TRADES = "be_trades";
 const lsGet = k => { try { return JSON.parse(localStorage.getItem(k)); } catch { return null; } };
@@ -463,7 +818,9 @@ const lsSet = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } ca
 
 function settingsObj() {
   const s = readState();
-  return {plan: s.plan, t0: s.t0, customTick: s.customTick, selectedTick, rates};
+  return {plan: s.plan, t0: s.t0, customTick: s.customTick, selectedTick, rates,
+          used: s.used, usedMonth, targetMode, targetVal: $("target").value, stopMode, stopVal: $("stopv").value,
+          name: $("name").value, qty: $("qty").value, price: $("price").value, fills: $("fills").value, prev: $("prev").value, lots2};
 }
 function applySettings(o) {
   if (!o) return;
@@ -472,35 +829,94 @@ function applySettings(o) {
   if (o.customTick) $("tick").value = o.customTick;
   if (o.selectedTick) selectedTick = o.selectedTick;
   if (o.rates) rates = {...DEFAULT_RATES, ...o.rates};
-  renderRates();
+  if (o.targetMode) targetMode = o.targetMode;
+  if (o.stopMode) stopMode = o.stopMode;
+  if (o.targetVal !== undefined) $("target").value = o.targetVal;
+  if (o.stopVal !== undefined) $("stopv").value = o.stopVal;
+  for (const [k, id] of [["name","name"],["qty","qty"],["price","price"],["fills","fills"],["prev","prev"]]) if (o[k] !== undefined) $(id).value = o[k];
+  if (Array.isArray(o.lots2)) lots2 = o.lots2.map(l => ({qty: +l.qty || 0, price: +l.price || 0}));
+  // the free-order counter restarts every month
+  usedMonth = o.usedMonth || "";
+  $("used").value = usedMonth === monthKey() ? (o.used || 0) : 0;
+  usedMonth = monthKey();
+  buildModes(); renderLots(); renderRates();
 }
 let settingsTimer = null;
 function saveSettings() {
   clearTimeout(settingsTimer);
   settingsTimer = setTimeout(() => {
+    usedMonth = monthKey();
     const o = settingsObj();
     lsSet(LS_SETTINGS, o);
     if (userCol) userCol.doc("settings").set({kind: "settings", ...o}).catch(() => {});
   }, 600);
 }
+async function persistTrade(t) {
+  const i = trades.findIndex(x => x.id === t.id);
+  if (i >= 0) trades[i] = t; else trades = [t, ...trades];
+  trades.sort((a, b) => (b.at || "").localeCompare(a.at || ""));
+  if (userCol) { try { await userCol.doc(t.id).set(t); return true; } catch { return false; } }
+  lsSet(LS_TRADES, trades); return true;
+}
+async function removeTrade(id) {
+  trades = trades.filter(t => t.id !== id);
+  renderHist();
+  if (userCol) { try { await userCol.doc(id).delete(); } catch { $("status").textContent = "مقدرتش أمسح من الحساب، جرّب تاني."; } }
+  else lsSet(LS_TRADES, trades);
+}
 
+/* ---------- trades list ---------- */
+const stateOf = t => ({lots: t.lots || [{qty: t.qty, price: t.price}], plan: t.plan || "std", t0: !!t.t0, fills: t.fills || 1, used: t.used || 0});
 function renderHist() {
   const ul = $("hist"); ul.innerHTML = "";
   $("histEmpty").hidden = trades.length > 0;
+  const closed = trades.filter(t => t.status === "closed");
+  const open = trades.filter(t => t.status !== "closed");
+  const realized = closed.reduce((a, t) => a + (t.realized || 0), 0);
+  const feesPaid = closed.reduce((a, t) => a + (t.feesTotal || 0), 0);
+  const wins = closed.filter(t => (t.realized || 0) > 0).length;
+  const sum = $("sum"); sum.innerHTML = "";
+  const cells = [["كل الصفقات", fmt(trades.length, 0)], ["مفتوحة", fmt(open.length, 0)], ["مقفولة", fmt(closed.length, 0)],
+    ["صافي الربح المحقق", (realized >= 0 ? "+" : "") + fmt(realized) + " ج"], ["رسوم المقفولة", fmt(feesPaid) + " ج"],
+    ["نسبة الرابحة", closed.length ? fmt(wins / closed.length * 100, 0) + "%" : "—"]];
+  for (const [k, v] of cells) {
+    const d = document.createElement("div"); const a = document.createElement("span"); a.textContent = k;
+    const b = document.createElement("b"); b.className = "num"; b.textContent = v; d.append(a, b); sum.append(d);
+  }
   for (const t of trades) {
     const li = document.createElement("li");
     const meta = document.createElement("div"); meta.className = "meta";
     const nm = document.createElement("span"); nm.className = "name"; nm.textContent = t.name || "بدون اسم";
+    const tag = document.createElement("span"); tag.className = "tag";
+    if (t.status === "closed") { tag.textContent = (t.realized || 0) >= 0 ? "مقفولة · ربح" : "مقفولة · خسارة"; tag.classList.add((t.realized || 0) >= 0 ? "ok" : "bad"); }
+    else tag.textContent = "مفتوحة";
+    nm.append(tag);
     const det = document.createElement("span"); det.className = "det";
-    det.textContent = `${t.qty.toLocaleString("en-US")} سهم × ${fmt(t.price, 3)} ← بيع على ${fmt(t.breakeven, decimalsOf(t.tick))} (${tickName(t.tick)}) · ${new Date(t.at).toLocaleDateString("en-GB")}`;
+    const when = new Date(t.at).toLocaleDateString("en-GB");
+    if (t.status === "closed") {
+      det.textContent = `${fmt(t.qty, 0)} سهم · شراء ${fmt(t.price, 3)} ← بيع ${fmt(t.sellPrice, 3)} · صافي ${(t.realized >= 0 ? "+" : "") + fmt(t.realized)} ج · رسوم ${fmt(t.feesTotal)} ج${t.approx ? " (تقريبي)" : ""} · ${when}`;
+    } else {
+      det.textContent = `${fmt(t.qty, 0)} سهم × ${fmt(t.price, 3)}${t.breakeven ? ` ← تعادل ${fmt(t.breakeven, decimalsOf(t.tick))}` : ""} · ${when}`;
+    }
     meta.append(nm, det);
     const acts = document.createElement("div"); acts.className = "acts";
-    const load = document.createElement("button"); load.className = "btn ghost"; load.type = "button"; load.textContent = "افتح";
-    load.onclick = () => {
-      $("name").value = t.name || ""; $("qty").value = t.qty; $("price").value = t.price;
-      if (t.plan) $("plan").value = t.plan; $("t0").checked = !!t.t0;
-      window.scrollTo({top: 0, behavior: "smooth"}); render();
-    };
+    if (t.status !== "closed") {
+      const box = document.createElement("span"); box.className = "closebox";
+      const inp = document.createElement("input"); inp.type = "text"; inp.inputMode = "decimal"; inp.placeholder = "سعر البيع الفعلي"; inp.className = "num";
+      inp.setAttribute("aria-label", "سعر البيع الفعلي");
+      const cb = document.createElement("button"); cb.className = "btn ghost"; cb.type = "button"; cb.textContent = "اقفل";
+      cb.onclick = async () => {
+        const P = parseFloat(norm(inp.value));
+        if (!(P > 0)) { inp.focus(); return; }
+        const c = compute(stateOf(t));
+        const f = c.buyFees.total + c.sellFeesAt(P).total;
+        await persistTrade({...t, status: "closed", sellPrice: P, realized: c.netAt(P) - c.cost, feesTotal: f, closedAt: new Date().toISOString()});
+        renderHist();
+      };
+      box.append(inp, cb); acts.append(box);
+    }
+    const load = document.createElement("button"); load.className = "btn ghost"; load.type = "button"; load.textContent = "افتح في الحاسبة";
+    load.onclick = () => { loadTrade(t); showTab("calc"); window.scrollTo({top: 0, behavior: "smooth"}); };
     const del = document.createElement("button"); del.className = "btn ghost danger"; del.type = "button"; del.textContent = "امسح";
     del.onclick = () => {
       if (del.dataset.armed) return removeTrade(t.id);
@@ -511,36 +927,251 @@ function renderHist() {
     li.append(meta, acts); ul.append(li);
   }
 }
-
-async function removeTrade(id) {
-  trades = trades.filter(t => t.id !== id);
-  renderHist();
-  if (userCol) { try { await userCol.doc(id).delete(); } catch { $("status").textContent = "مقدرتش أمسح من الحساب، جرّب تاني."; } }
-  else lsSet(LS_TRADES, trades);
+function loadTrade(t) {
+  const lots = t.lots && t.lots.length ? t.lots : [{qty: t.qty, price: t.price}];
+  $("name").value = t.name || "";
+  $("qty").value = lots[0].qty; $("price").value = lots[0].price;
+  lots2 = lots.slice(1).map(l => ({qty: l.qty, price: l.price}));
+  if (t.plan) $("plan").value = t.plan;
+  $("t0").checked = !!t.t0;
+  if (t.fills) $("fills").value = t.fills;
+  renderLots(); render();
 }
 
 $("save").onclick = async () => {
   if (!lastResult) { $("status").textContent = "اكتب عدد الأسهم وسعر الشراء الأول."; return; }
-  const {s, sel} = lastResult;
-  const t = {kind: "trade", id: "t" + Date.now(), name: s.name, qty: s.qty, price: s.price, plan: s.plan, t0: s.t0,
-             tick: sel.tick, breakeven: sel.price, at: new Date().toISOString()};
-  if (userCol) {
-    try { await userCol.doc(t.id).set(t); $("status").textContent = "اتحفظت في حسابك."; }
-    catch { $("status").textContent = "مقدرتش أحفظ في الحساب، جرّب تاني."; }
-  } else {
-    trades = [t, ...trades]; lsSet(LS_TRADES, trades); renderHist();
-    $("status").textContent = "اتحفظت على الجهاز دا بس.";
-  }
+  const {s, c, sel} = lastResult;
+  const t = {kind: "trade", id: "t" + Date.now(), status: "open", name: s.name, lots: s.lots, qty: s.qty, price: +s.price.toFixed(4),
+             plan: s.plan, t0: s.t0, fills: s.fills, used: s.used, tick: sel.tick, breakeven: sel.price, buyFees: +c.buyFees.total.toFixed(2),
+             at: new Date().toISOString()};
+  const ok = await persistTrade(t);
+  $("status").textContent = ok ? (userCol ? "اتحفظت في حسابك. هتلاقيها في «سجل الصفقات»." : "اتحفظت على الجهاز دا. هتلاقيها في «سجل الصفقات».") : "مقدرتش أحفظ، جرّب تاني.";
+  renderHist();
 };
 
+/* ---------- CSV export ---------- */
+$("csvBtn").onclick = () => {
+  const head = ["التاريخ", "السهم", "الحالة", "الكمية", "متوسط الشراء", "سعر البيع", "الربح الصافي", "الرسوم", "سعر التعادل"];
+  const q = v => '"' + String(v ?? "").replace(/"/g, '""') + '"';
+  const lines = [head.map(q).join(",")];
+  for (const t of trades) {
+    lines.push([new Date(t.at).toISOString().slice(0, 10), t.name || "", t.status === "closed" ? "مقفولة" : "مفتوحة", t.qty, t.price,
+      t.sellPrice ?? "", t.realized != null ? +t.realized.toFixed(2) : "", t.feesTotal != null ? +t.feesTotal.toFixed(2) : (t.buyFees ?? ""), t.breakeven ?? ""].map(q).join(","));
+  }
+  const blob = new Blob(["﻿" + lines.join("\r\n")], {type: "text/csv;charset=utf-8"});
+  const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = "trades.csv";
+  document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+};
+
+/* ---------- share link ---------- */
+function stateToHash() {
+  const s = readState();
+  const o = {n: s.name, l: s.lots.map(l => [l.qty, l.price]), p: s.plan, t: s.t0 ? 1 : 0, f: s.fills, k: selectedTick, c: s.customTick, u: s.used, v: s.prev,
+             g: [targetMode, $("target").value], x: [stopMode, $("stopv").value]};
+  return "s=" + btoa(unescape(encodeURIComponent(JSON.stringify(o)))).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
+function applyHash() {
+  const m = /^#s=([A-Za-z0-9_-]+)$/.exec(location.hash);
+  if (!m) return false;
+  try {
+    const b = m[1].replace(/-/g, "+").replace(/_/g, "/");
+    const o = JSON.parse(decodeURIComponent(escape(atob(b + "=".repeat((4 - b.length % 4) % 4)))));
+    $("name").value = o.n || "";
+    $("qty").value = o.l[0][0]; $("price").value = o.l[0][1];
+    lots2 = o.l.slice(1).map(([qty, price]) => ({qty: +qty, price: +price}));
+    if (PLANS[o.p]) $("plan").value = o.p;
+    $("t0").checked = !!o.t;
+    $("fills").value = o.f || 1;
+    if (o.k === "auto" || +o.k > 0) selectedTick = o.k === "auto" ? "auto" : +o.k;
+    if (o.c > 0) $("tick").value = o.c;
+    $("used").value = o.u || 0;
+    $("prev").value = o.v || "";
+    if (o.g) { targetMode = o.g[0] === "amt" ? "amt" : "pct"; $("target").value = o.g[1]; }
+    if (o.x) { stopMode = o.x[0] === "amt" ? "amt" : "pct"; $("stopv").value = o.x[1]; }
+    buildModes(); renderLots();
+    return true;
+  } catch { return false; }
+}
+$("shareBtn").onclick = async () => {
+  const url = location.href.split("#")[0] + "#" + stateToHash();
+  $("linkOut").value = url; $("linkBox").hidden = false;
+  if (navigator.share) { try { await navigator.share({title: "أبيع على كام؟", url}); return; } catch {} }
+  $("linkOut").select();
+};
+$("copyLink").onclick = async () => {
+  const el = $("linkOut"); el.select();
+  try { await navigator.clipboard.writeText(el.value); $("status").textContent = "اتنسخ الرابط."; }
+  catch { $("status").textContent = "حدد الرابط وانسخه بإيدك."; }
+};
+
+/*PARSER_START*/
+// Reads one page of a Thndr custody invoice from pdf.js text items [{x, y, s}].
+// Arabic glyphs come out as presentation forms, so NFKC restores the letters; numbers are read as they are.
+function invoiceRows(items) {
+  const rows = new Map();
+  for (const it of items) {
+    if (!it.s || !it.s.trim()) continue;
+    const y = Math.round(it.y / 4) * 4;
+    if (!rows.has(y)) rows.set(y, []);
+    rows.get(y).push(it);
+  }
+  return [...rows.keys()].sort((a, b) => b - a).map(y => {
+    const its = rows.get(y).sort((a, b) => b.x - a.x);
+    const cells = []; let cur = "", last = null;
+    for (const it of its) {
+      if (last !== null && last - it.x > 40) { cells.push(cur); cur = ""; }
+      cur += it.s; last = it.x;
+    }
+    cells.push(cur);
+    return {y, cells: cells.map(c => c.normalize("NFKC").trim()).filter(Boolean)};
+  });
+}
+function parseInvoicePage(items) {
+  const rows = invoiceRows(items);
+  const flat = c => c.replace(/\s/g, "");
+  const toNum = c => parseFloat(c.replace(/ج\.م/g, "").replace(/[^\d.]/g, ""));
+  const codeRe = /^[A-Z]{2,3}[0-9A-Z]{9,10}$/;
+  const ci = rows.findIndex(r => r.cells.some(c => codeRe.test(flat(c))));
+  if (ci < 0) return null;
+  const row = rows[ci];
+  const code = flat(row.cells.find(c => codeRe.test(flat(c))));
+  const typeCell = row.cells.map(flat).find(c => /^(بيع|شراء)/.test(c));
+  const date = (rows.map(r => r.cells.join(" ")).join(" ").match(/\d{2}\/\d{2}\/\d{4}/) || [""])[0];
+  const avgCost = toNum(row.cells.find(c => c.includes("ج.م")) || "");
+  // name: Arabic cells in the data rows between the column headers
+  const hi = rows.findIndex(r => r.cells.some(c => flat(c).includes("كودالورقة")));
+  const ti = rows.findIndex((r, i) => i > ci && r.cells.some(c => flat(c).includes("رقمالعملية")));
+  const nameParts = [];
+  for (let i = hi + 1; i < (ti < 0 ? rows.length : ti); i++) {
+    for (const c of rows[i].cells) {
+      if (codeRe.test(flat(c)) || /^(بيع|شراء)/.test(flat(c)) || c.includes("ج.م") || /^[\d.,\s]+$/.test(c)) continue;
+      nameParts.push(c);
+    }
+  }
+  const qi = rows.findIndex(r => r.cells.some(c => flat(c).includes("اجماليالكمية")));
+  const tot = qi >= 0 && rows[qi + 1] ? rows[qi + 1].cells.map(toNum) : [];
+  const mi = rows.findIndex(r => r.cells.some(c => flat(c).includes("نوعالعمولة")));
+  const amts = [];
+  for (let i = mi + 1; i < rows.length && mi >= 0; i++)
+    for (const c of rows[i].cells) if (flat(c).endsWith("ج.م") && /\d/.test(c)) amts.push(toNum(c));
+  if (tot.length < 3 || amts.length < 3) return null;
+  const net = amts[amts.length - 1], feesTotal = amts[amts.length - 2];
+  const value = tot[2];
+  let type = typeCell ? (/^بيع/.test(typeCell) ? (typeCell.includes("نفس") ? "sellT0" : "sell") : "buy") : (net < value ? "sell" : "buy");
+  const execs = new Set(rows.flatMap(r => r.cells).filter(c => /^N\d{6,}/.test(flat(c))).map(flat)).size;
+  return {date, code, name: nameParts.join(" "), type, qty: tot[0], avg: tot[1], value, feesTotal, net, avgCost, execs, comps: amts.slice(0, -2)};
+}
+function tradesFromOps(ops) {
+  const out = [], groups = new Map();
+  for (const o of ops) { const k = o.date + "|" + o.code; if (!groups.has(k)) groups.set(k, []); groups.get(k).push(o); }
+  for (const [k, g] of groups) {
+    const buys = g.filter(o => o.type === "buy"), sells = g.filter(o => o.type !== "buy");
+    const [d, m, y] = g[0].date.split("/");
+    const at = `${y}-${m}-${d}T12:00:00.000Z`;
+    const sum = (a, f) => a.reduce((x, o) => x + o[f], 0);
+    const bq = sum(buys, "qty"), bn = sum(buys, "net"), bf = sum(buys, "feesTotal");
+    const sq = sum(sells, "qty"), sn = sum(sells, "net"), sf = sum(sells, "feesTotal");
+    const name = g[0].name || g[0].code;
+    const base = {kind: "trade", source: "invoice", code: g[0].code, name, at, plan: "std"};
+    if (buys.length && sells.length) {
+      const q = Math.min(bq, sq), r = q / bq;
+      out.push({...base, id: "inv_" + k.replace(/[^\w]/g, ""), status: "closed", qty: q, price: +(sum(buys, "value") / bq).toFixed(4),
+        lots: [{qty: q, price: +(sum(buys, "value") / bq).toFixed(4)}], sellPrice: +(sum(sells, "value") / sq).toFixed(4),
+        realized: +(sn * (q / sq) - bn * r).toFixed(2), feesTotal: +(bf * r + sf * (q / sq)).toFixed(2), t0: sells.every(o => o.type === "sellT0")});
+    } else if (buys.length) {
+      const p = +(sum(buys, "value") / bq).toFixed(4);
+      out.push({...base, id: "inv_" + k.replace(/[^\w]/g, "") + "_b", status: "open", qty: bq, price: p, lots: [{qty: bq, price: p}], buyFees: +bf.toFixed(2)});
+    } else if (sells.length) {
+      const cost = sells[0].avgCost * sq;
+      out.push({...base, id: "inv_" + k.replace(/[^\w]/g, "") + "_s", status: "closed", approx: true, qty: sq, price: sells[0].avgCost,
+        lots: [{qty: sq, price: sells[0].avgCost}], sellPrice: +(sum(sells, "value") / sq).toFixed(4),
+        realized: +(sn - cost).toFixed(2), feesTotal: +sf.toFixed(2), t0: sells.every(o => o.type === "sellT0")});
+    }
+  }
+  return out;
+}
+/*PARSER_END*/
+
+/* ---------- invoice import UI ---------- */
+let pendingImport = [];
+const PDFJS = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/";
+function loadPdfJs() {
+  return new Promise((ok, no) => {
+    if (window.pdfjsLib) return ok();
+    const sc = document.createElement("script"); sc.src = PDFJS + "pdf.min.js";
+    sc.onload = () => { pdfjsLib.GlobalWorkerOptions.workerSrc = PDFJS + "pdf.worker.min.js"; ok(); };
+    sc.onerror = () => no(new Error("load"));
+    document.head.append(sc);
+  });
+}
+$("pdfIn").addEventListener("change", async e => {
+  const f = e.target.files[0]; if (!f) return;
+  const st = $("pdfStatus"); st.textContent = "بقرا الفاتورة...";
+  try {
+    await loadPdfJs();
+    const doc = await pdfjsLib.getDocument({data: new Uint8Array(await f.arrayBuffer())}).promise;
+    const ops = [];
+    for (let i = 1; i <= doc.numPages; i++) {
+      const tc = await (await doc.getPage(i)).getTextContent();
+      const o = parseInvoicePage(tc.items.map(it => ({x: it.transform[4], y: it.transform[5], s: it.str})));
+      if (o) ops.push(o);
+    }
+    if (!ops.length) { st.textContent = "ملقتش عمليات في الملف دا. اتأكد إنه فاتورة ثاندر."; return; }
+    pendingImport = tradesFromOps(ops);
+    st.textContent = `لقيت ${fmt(ops.length, 0)} عملية في ${fmt(pendingImport.length, 0)} صفقة. الأسماء ممكن تظهر من غير مسافات، وتقدر تعدّلها بعد الإضافة.`;
+    const ul = $("impList"); ul.innerHTML = "";
+    for (const t of pendingImport) {
+      const li = document.createElement("li");
+      const meta = document.createElement("div"); meta.className = "meta";
+      const nm = document.createElement("span"); nm.className = "name"; nm.textContent = t.name;
+      const det = document.createElement("span"); det.className = "det";
+      det.textContent = t.status === "closed"
+        ? `مقفولة · ${fmt(t.qty, 0)} سهم · شراء ${fmt(t.price, 3)} ← بيع ${fmt(t.sellPrice, 3)} · صافي ${(t.realized >= 0 ? "+" : "") + fmt(t.realized)} ج · رسوم ${fmt(t.feesTotal)} ج${t.approx ? " · تقريبي (الشراء مش في الفاتورة)" : ""}`
+        : `مفتوحة · ${fmt(t.qty, 0)} سهم × ${fmt(t.price, 3)}`;
+      meta.append(nm, det); li.append(meta); ul.append(li);
+    }
+    $("impSave").hidden = false;
+  } catch (err) {
+    st.textContent = "معرفتش أقرا الملف. اتأكد إنك متصل بالنت أول مرة (علشان يحمّل قارئ الـ PDF) وإن الملف سليم.";
+  }
+});
+$("impSave").onclick = async () => {
+  let n = 0;
+  for (const t of pendingImport) { if (await persistTrade(t)) n++; }
+  $("pdfStatus").textContent = `اتضافت ${fmt(n, 0)} صفقة للسجل.`;
+  $("impList").innerHTML = ""; $("impSave").hidden = true; pendingImport = [];
+  renderHist();
+};
+
+/* ---------- tabs ---------- */
+function showTab(name) {
+  for (const b of document.querySelectorAll(".tab")) b.setAttribute("aria-selected", String(b.dataset.tab === name));
+  for (const p of document.querySelectorAll(".tabpanel")) p.hidden = p.id !== "tab-" + name;
+  try { localStorage.setItem("be_tab", name); } catch {}
+}
+document.querySelectorAll(".tab").forEach(b => b.onclick = () => showTab(b.dataset.tab));
+
+/* ---------- inputs ---------- */
 $("resetRates").onclick = () => { rates = {...DEFAULT_RATES}; renderRates(); saveSettings(); render(); };
-for (const id of ["name", "qty", "price", "steps"]) $(id).addEventListener("input", render);
-for (const id of ["plan", "t0", "tick", "fills"]) $(id).addEventListener("input", () => { saveSettings(); render(); });
+$("addLot").onclick = () => {
+  lots2.push({qty: 0, price: 0}); renderLots();
+  const first = document.querySelector(".lot input"); if (first) first.focus();
+  saveSettings();
+};
+document.addEventListener("input", e => {
+  if (e.target.closest("#rates") || e.target.closest("#hist") || e.target.id === "pdfIn" || e.target.id === "linkOut") return;
+  if (e.target.matches("input[data-lot]")) syncLotsFromDOM();
+  if (e.target.id === "used") usedMonth = monthKey();
+  saveSettings(); render();
+});
 
 // Start from browser storage, then switch to the account store if it's available.
 applySettings(lsGet(LS_SETTINGS));
 trades = lsGet(LS_TRADES) || [];
-renderRates(); render(); renderHist();
+buildModes(); renderRates(); renderLots();
+applyHash();
+render(); renderHist();
+try { showTab(localStorage.getItem("be_tab") || "calc"); } catch {}
 $("status").textContent = "الحفظ على الجهاز دا.";
 
 (async () => {
@@ -557,9 +1188,8 @@ $("status").textContent = "الحفظ على الجهاز دا.";
       const st = docs.find(d => d.id === "settings");
       if (first) {
         first = false;
-        if (st) { applySettings(st); render(); }
-        else saveSettings();
-        // Move anything saved on this device into the account once.
+        if (st && !location.hash.startsWith("#s=")) { applySettings(st); render(); }
+        else if (!st) saveSettings();
         const local = lsGet(LS_TRADES) || [];
         const have = new Set(docs.map(d => d.id));
         for (const t of local) if (!have.has(t.id)) userCol.doc(t.id).set({...t, kind: "trade"}).catch(() => {});
@@ -586,31 +1216,40 @@ $("status").textContent = "الحفظ على الجهاز دا.";
   if (window.matchMedia && matchMedia("(max-width:900px)").matches) $("helpBox").open = false;
 })();
 
-// Number steppers: tap +/−, hold to repeat, ArrowUp/ArrowDown on the keyboard.
+// Number steppers: tap +/−, hold to repeat, ArrowUp/ArrowDown on the keyboard (works for rows added later too).
 (() => {
   const decs = x => { const t = String(x); return t.includes(".") ? t.split(".")[1].length : 0; };
   const bump = (id, dir) => {
-    const el = $(id), st = parseFloat(el.dataset.step) || 1, mn = parseFloat(el.dataset.min);
-    const d = Math.max(decs(st), decs(num(id) || 0));
-    let v = (num(id) || 0) + dir * st;
+    const el = $(id); if (!el) return;
+    const st = parseFloat(el.dataset.step) || 1, mn = parseFloat(el.dataset.min);
+    let cur = parseFloat(norm(el.value));
+    if (!Number.isFinite(cur)) cur = id === "prev" ? (num("price") || 0) : 0;
+    const d = Math.max(decs(st), decs(cur));
+    let v = cur + dir * st;
     if (Number.isFinite(mn)) v = Math.max(mn, v);
     el.value = String(+v.toFixed(d));
     el.dispatchEvent(new Event("input", {bubbles: true}));
   };
   let t1 = null, t2 = null;
   const stop = () => { clearTimeout(t1); clearInterval(t2); };
-  document.querySelectorAll(".stp").forEach(b => {
+  document.addEventListener("pointerdown", e => {
+    const b = e.target.closest && e.target.closest(".stp"); if (!b) return;
+    e.preventDefault();
     const go = () => bump(b.dataset.for, +b.dataset.dir);
-    b.addEventListener("pointerdown", e => {
-      e.preventDefault(); go(); stop();
-      t1 = setTimeout(() => { t2 = setInterval(go, 70); }, 400);
-    });
-    for (const ev of ["pointerup", "pointerleave", "pointercancel"]) b.addEventListener(ev, stop);
-    b.addEventListener("click", e => { if (e.detail === 0) go(); });
+    go(); stop();
+    t1 = setTimeout(() => { t2 = setInterval(go, 70); }, 400);
   });
-  document.querySelectorAll(".stepper input").forEach(inp => inp.addEventListener("keydown", e => {
-    if (e.key === "ArrowUp" || e.key === "ArrowDown") { e.preventDefault(); bump(inp.id, e.key === "ArrowUp" ? 1 : -1); }
-  }));
+  for (const ev of ["pointerup", "pointercancel", "pointerleave"]) document.addEventListener(ev, stop);
+  document.addEventListener("click", e => {
+    const b = e.target.closest && e.target.closest(".stp");
+    if (b && e.detail === 0) bump(b.dataset.for, +b.dataset.dir);
+  });
+  document.addEventListener("keydown", e => {
+    const inp = e.target;
+    if (inp.matches && inp.matches(".stepper input") && (e.key === "ArrowUp" || e.key === "ArrowDown")) {
+      e.preventDefault(); bump(inp.id, e.key === "ArrowUp" ? 1 : -1);
+    }
+  });
 })();
 
 // Digit style: Western (123) or Arabic-Indic (١٢٣), remembered on this device.
@@ -636,7 +1275,21 @@ $("status").textContent = "الحفظ على الجهاز دا.";
     .observe($("heroPrice"), {childList: true, characterData: true, subtree: true});
   $("stickPrice").textContent = $("heroPrice").textContent;
   if ("IntersectionObserver" in window) {
-    new IntersectionObserver(([e]) => { bar.hidden = e.isIntersecting; }).observe(hero);
+    new IntersectionObserver(([e]) => { bar.hidden = e.isIntersecting || $("tab-calc").hidden; }).observe(hero);
+  }
+})();
+
+// Install as an app (Android/desktop Chrome) and offline cache.
+(() => {
+  let deferred = null;
+  window.addEventListener("beforeinstallprompt", e => { e.preventDefault(); deferred = e; $("installBtn").hidden = false; });
+  $("installBtn").onclick = async () => {
+    if (!deferred) return;
+    deferred.prompt(); try { await deferred.userChoice; } catch {}
+    deferred = null; $("installBtn").hidden = true;
+  };
+  if ("serviceWorker" in navigator && /^https?:$/.test(location.protocol)) {
+    navigator.serviceWorker.register("sw.js").catch(() => {});
   }
 })();
 </script>
