@@ -110,6 +110,8 @@ th{white-space:normal}
 tbody tr:last-child td{border-bottom:0}
 th{color:var(--muted);font-weight:500;font-size:.82rem;background:var(--surface-2)}
 tr.sel td{background:var(--accent-soft);font-weight:600}
+td.n{text-align:right}
+td.txt{font-family:var(--font-body);direction:rtl;unicode-bidi:plaintext}
 .pos{color:var(--up)} .neg{color:var(--down)}
 
 .fees{display:grid;grid-template-columns:1fr 1fr;gap:20px}
@@ -687,7 +689,7 @@ function render() {
   const sel = rows[idx];
   lastResult = {s, c, sel};
   const isAuto = selectedTick === "auto";
-  const dec = P => decimalsOf(isAuto ? tickFor(P) : selectedTick);
+  const dec = P => Math.max(2, decimalsOf(isAuto ? tickFor(P) : selectedTick));
   const lim = dailyLimits(s.prev);
 
   $("heroTick").textContent = tickName(selectedTick);
@@ -735,9 +737,9 @@ function render() {
     const t = ticks[i];
     const tr = document.createElement("tr");
     if (t === selectedTick) tr.className = "sel";
-    tr.innerHTML = `<td></td><td class="n num"></td><td class="n num pos"></td><td class="n num"></td>`;
+    tr.innerHTML = `<td class="txt"></td><td class="n num"></td><td class="n num pos"></td><td class="n num"></td>`;
     tr.children[0].textContent = tickName(t);
-    tr.children[1].textContent = fmt(r.price, decimalsOf(r.tick));
+    tr.children[1].textContent = fmt(r.price, Math.max(2, decimalsOf(r.tick)));
     tr.children[2].textContent = "+" + fmt(r.profit);
     tr.children[3].textContent = fmt(r.rise) + "%";
     tb.append(tr);
@@ -754,8 +756,9 @@ function render() {
     const tr = document.createElement("tr");
     if (k === 0) tr.className = "sel";
     if (lim && P > lim.hi) tr.className += " off";
-    tr.innerHTML = `<td class="n num"></td><td class="n num"></td><td class="n num"></td><td class="n num"></td>`;
-    tr.children[0].textContent = k === 0 ? "التعادل" : "+" + k;
+    tr.innerHTML = `<td class="n"></td><td class="n num"></td><td class="n num"></td><td class="n num"></td>`;
+    tr.children[0].textContent = k === 0 ? "التعادل" : "+" + fmt(k, 0);
+    if (k > 0) tr.children[0].classList.add("num");
     tr.children[1].textContent = fmt(P, dec(P));
     tr.children[2].textContent = (profit >= 0 ? "+" : "") + fmt(profit);
     tr.children[2].classList.add(profit >= 0 ? "pos" : "neg");
