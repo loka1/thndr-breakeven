@@ -89,7 +89,8 @@ header{position:relative}
   .panel{padding:14px;border-radius:12px}
   header h1{font-size:1.6rem}
   .hero .big{font-size:2.6rem}
-  th,td{padding:8px 8px;font-size:.85rem}
+  th,td{padding:8px 5px;font-size:.78rem}
+  .tablebox th:first-child,.tablebox td:first-child{padding-inline-start:8px}
   th{white-space:normal}
 }
 
@@ -112,6 +113,7 @@ th{color:var(--muted);font-weight:500;font-size:.82rem;background:var(--surface-
 tr.sel td{background:var(--accent-soft);font-weight:600}
 td.n{text-align:right}
 td.txt{font-family:var(--font-body);direction:rtl;unicode-bidi:plaintext}
+@media (max-width:520px){td.txt{white-space:normal;max-width:4.6rem;line-height:1.35}}
 .pos{color:var(--up)} .neg{color:var(--down)}
 
 .fees{display:grid;grid-template-columns:1fr 1fr;gap:20px}
@@ -198,6 +200,7 @@ tr.off td:first-child::after{content:" (فوق الحد اليومي)";font-size
 .cmp span{font-size:.82rem;color:var(--muted)}
 .linkbox{display:flex;gap:8px;flex-wrap:wrap}
 .linkbox input{flex:1;min-width:0;direction:ltr;font-size:.8rem}
+.note .num,.goal .note .num{white-space:nowrap}
 .help .sub2{margin:10px 0 0;font-size:.8rem;color:var(--muted)}
 </style>
 </head>
@@ -318,7 +321,7 @@ tr.off td:first-child::after{content:" (فوق الحد اليومي)";font-size
         <div class="seg" id="tickSeg" role="group" aria-label="اختار الوزن"></div>
         <div class="tablebox">
           <table>
-            <thead><tr><th>الوزن</th><th>أقل سعر بيع</th><th>صافي الربح</th><th>الارتفاع المطلوب</th></tr></thead>
+            <thead><tr><th>الوزن</th><th>أقل سعر بيع</th><th>الربح قبل الرسوم</th><th>الصافي بعد الرسوم</th><th>الارتفاع</th></tr></thead>
             <tbody id="ladder"></tbody>
           </table>
         </div>
@@ -332,11 +335,11 @@ tr.off td:first-child::after{content:" (فوق الحد اليومي)";font-size
         </div>
         <div class="tablebox">
           <table>
-            <thead><tr><th>الخطوة</th><th>سعر البيع</th><th>صافي الربح</th><th>الارتفاع عن الشراء</th></tr></thead>
+            <thead><tr><th>الخطوة</th><th>سعر البيع</th><th>الربح قبل الرسوم</th><th>الصافي بعد الرسوم</th><th>الارتفاع</th></tr></thead>
             <tbody id="stepRows"></tbody>
           </table>
         </div>
-        <p class="small">أول صف هو أقل سعر بيع يغطي الرسوم، وكل صف بعده بيزيد وزن واحد. اختار الوزن من الأزرار اللي فوق.</p>
+        <p class="small">أول صف هو أقل سعر بيع يغطي الرسوم، وكل صف بعده بيزيد وزن واحد. اختار الوزن من الأزرار اللي فوق. «الربح قبل الرسوم» هو فرق السعر × الأسهم، و«الصافي» بعد خصم رسوم الشراء والبيع كلها.</p>
       </section>
 
       <section class="panel">
@@ -534,7 +537,7 @@ function compute(s) {
     if (t === "auto" && tickFor(P) !== tk) { tk = tickFor(P); P = up(tk); }
     return {tick: tk, price: P, profit: net(P) - cost, rise: (P / avg - 1) * 100, exact};
   };
-  return {buyVal, qty, avg, buyFees, cost, exact: exactFor(0), atTick, netAt: net, sellFeesAt, sellFree, orders: lots.length + 1};
+  return {buyVal, qty, avg, buyFees, cost, exact: exactFor(0), atTick, netAt: net, grossAt: P => P * qty - buyVal, sellFeesAt, sellFree, orders: lots.length + 1};
 }
 
 function readState() {
@@ -644,6 +647,7 @@ function setNote(el, parts) {
     if (typeof p === "string") sp.textContent = p;
     else { sp.className = "num " + (p.cls || ""); sp.textContent = p.t; }
     el.append(sp);
+    if (p.unit) el.append(document.createTextNode(p.unit));
   }
 }
 
@@ -694,8 +698,9 @@ function render() {
 
   $("heroTick").textContent = tickName(selectedTick);
   $("heroPrice").textContent = fmt(sel.price, dec(sel.price));
-  setNote($("heroNote"), [`ارتفاع ${fmt(sel.rise)}% عن متوسط الشراء · صافي عند السعر دا: `,
-    {t: (sel.profit >= 0 ? "+" : "") + fmt(sel.profit) + " ج", cls: sel.profit >= 0 ? "pos" : "neg"}]);
+  const sg = (v, cls) => ({t: (v >= 0 ? "+" : "") + fmt(v), cls, unit: " ج"});
+  setNote($("heroNote"), [`ارتفاع ${fmt(sel.rise)}% عن متوسط الشراء · الربح قبل الرسوم: `, sg(c.grossAt(sel.price), "pos"),
+    ` · الصافي بعد الرسوم: `, sg(sel.profit, sel.profit >= 0 ? "pos" : "neg")]);
 
   // Goals
   const costAmt = c.cost;
@@ -709,11 +714,13 @@ function render() {
   $("stopLabel").textContent = stopAmt > 0 ? `سعر وقف الخسارة (${fmt(stopAmt)} ج صافي)` : "سعر وقف الخسارة";
   if (goal) {
     $("goalPrice").textContent = fmt(goal.price, dec(goal.price));
-    setNote($("goalNote"), [`ارتفاع ${fmt(goal.rise)}% · صافي الربح: `, {t: "+" + fmt(goal.profit) + " ج", cls: "pos"}]);
+    setNote($("goalNote"), [`ارتفاع ${fmt(goal.rise)}% · الربح قبل الرسوم: `, sg(c.grossAt(goal.price), "pos"),
+      ` · الصافي بعد الرسوم: `, sg(goal.profit, "pos")]);
   } else { $("goalPrice").textContent = "—"; $("goalNote").textContent = "اكتب هدف الربح في الحقول."; }
   if (stop) {
     $("stopPrice").textContent = fmt(stop.price, dec(stop.price));
-    setNote($("stopNote"), [`نزول ${fmt(-stop.rise)}% عن المتوسط · صافي الخسارة: `, {t: fmt(stop.profit) + " ج", cls: "neg"}]);
+    setNote($("stopNote"), [`نزول ${fmt(-stop.rise)}% عن المتوسط · قبل الرسوم: `, sg(c.grossAt(stop.price), c.grossAt(stop.price) >= 0 ? "pos" : "neg"),
+      ` · الصافي بعد الرسوم: `, sg(stop.profit, "neg")]);
   } else { $("stopPrice").textContent = "—"; $("stopNote").textContent = "اكتب أقصى خسارة تتحملها."; }
 
   // Warnings
@@ -737,11 +744,12 @@ function render() {
     const t = ticks[i];
     const tr = document.createElement("tr");
     if (t === selectedTick) tr.className = "sel";
-    tr.innerHTML = `<td class="txt"></td><td class="n num"></td><td class="n num pos"></td><td class="n num"></td>`;
+    tr.innerHTML = `<td class="txt"></td><td class="n num"></td><td class="n num"></td><td class="n num pos"></td><td class="n num"></td>`;
     tr.children[0].textContent = tickName(t);
     tr.children[1].textContent = fmt(r.price, Math.max(2, decimalsOf(r.tick)));
-    tr.children[2].textContent = "+" + fmt(r.profit);
-    tr.children[3].textContent = fmt(r.rise) + "%";
+    tr.children[2].textContent = "+" + fmt(c.grossAt(r.price));
+    tr.children[3].textContent = "+" + fmt(r.profit);
+    tr.children[4].textContent = fmt(r.rise) + "%";
     tb.append(tr);
   });
   $("exact").textContent = fmt(c.exact, 4);
@@ -756,13 +764,15 @@ function render() {
     const tr = document.createElement("tr");
     if (k === 0) tr.className = "sel";
     if (lim && P > lim.hi) tr.className += " off";
-    tr.innerHTML = `<td class="n"></td><td class="n num"></td><td class="n num"></td><td class="n num"></td>`;
+    tr.innerHTML = `<td class="n"></td><td class="n num"></td><td class="n num"></td><td class="n num"></td><td class="n num"></td>`;
     tr.children[0].textContent = k === 0 ? "التعادل" : "+" + fmt(k, 0);
     if (k > 0) tr.children[0].classList.add("num");
     tr.children[1].textContent = fmt(P, dec(P));
-    tr.children[2].textContent = (profit >= 0 ? "+" : "") + fmt(profit);
-    tr.children[2].classList.add(profit >= 0 ? "pos" : "neg");
-    tr.children[3].textContent = fmt((P / c.avg - 1) * 100) + "%";
+    const gross = c.grossAt(P);
+    tr.children[2].textContent = (gross >= 0 ? "+" : "") + fmt(gross);
+    tr.children[3].textContent = (profit >= 0 ? "+" : "") + fmt(profit);
+    tr.children[3].classList.add(profit >= 0 ? "pos" : "neg");
+    tr.children[4].textContent = fmt((P / c.avg - 1) * 100) + "%";
     sb.append(tr);
     const stp = isAuto ? tickFor(P) : selectedTick;
     P = +(P + stp).toFixed(decimalsOf(stp));
