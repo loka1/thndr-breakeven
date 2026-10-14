@@ -114,6 +114,20 @@ details[open] summary{margin-bottom:12px}
   </section>
 
   <section class="panel">
+    <div class="row">
+      <h2>الأسعار خطوة بخطوة (على وزن <span id="stepTick">القرش</span>)</h2>
+      <label class="check">عدد الخطوات<input id="steps" class="num" type="number" inputmode="numeric" min="1" max="100" step="1" value="20" style="width:5rem"></label>
+    </div>
+    <div class="tablebox">
+      <table>
+        <thead><tr><th>#</th><th>سعر البيع</th><th>صافي الربح</th><th>الارتفاع عن الشراء</th></tr></thead>
+        <tbody id="stepRows"></tbody>
+      </table>
+    </div>
+    <p class="small">أول صف هو أقل سعر بيع يغطي الرسوم، وكل صف بعده بيزيد وزن واحد. اختار الوزن من الأزرار اللي فوق.</p>
+  </section>
+
+  <section class="panel">
     <h2>تفاصيل الرسوم</h2>
     <div class="fees">
       <div><p class="small" style="margin-bottom:6px">الشراء — قيمة <span class="num" id="buyVal"></span></p><dl id="buyFees"></dl></div>
@@ -203,7 +217,7 @@ function compute(s) {
     while (net(P) < cost - 1e-9) { n++; P = +(n * t).toFixed(d); }
     return {tick: t, price: P, profit: net(P) - cost, rise: (P / s.price - 1) * 100};
   };
-  return {buyVal, buyFees, cost, exact, atTick, sellFeesAt: P => fees(P * s.qty, s, s.fills)};
+  return {buyVal, buyFees, cost, exact, atTick, netAt: net, sellFeesAt: P => fees(P * s.qty, s, s.fills)};
 }
 
 function readState() {
@@ -248,7 +262,7 @@ function render() {
   if (!s.qty || !s.price) {
     $("heroPrice").textContent = "—";
     $("heroNote").textContent = "اكتب عدد الأسهم وسعر الشراء.";
-    $("ladder").innerHTML = ""; lastResult = null; return;
+    $("ladder").innerHTML = ""; $("stepRows").innerHTML = ""; lastResult = null; return;
   }
 
   const c = compute(s);
@@ -278,6 +292,23 @@ function render() {
     tb.append(tr);
   }
   $("exact").textContent = fmt(c.exact, 4);
+  $("stepTick").textContent = tickName(selectedTick);
+  const sb = $("stepRows"); sb.innerHTML = "";
+  const n = Math.min(100, Math.max(1, Math.floor(+$("steps").value || 20)));
+  const dd = decimalsOf(selectedTick);
+  for (let k = 0; k < n; k++) {
+    const P = +(sel.price + k * selectedTick).toFixed(dd);
+    const profit = c.netAt(P) - c.cost;
+    const tr = document.createElement("tr");
+    if (k === 0) tr.className = "sel";
+    tr.innerHTML = `<td class="n num"></td><td class="n num"></td><td class="n num"></td><td class="n num"></td>`;
+    tr.children[0].textContent = k === 0 ? "التعادل" : "+" + k;
+    tr.children[1].textContent = fmt(P, dd);
+    tr.children[2].textContent = (profit >= 0 ? "+" : "") + fmt(profit);
+    tr.children[2].classList.add(profit >= 0 ? "pos" : "neg");
+    tr.children[3].textContent = fmt((P / s.price - 1) * 100) + "%";
+    sb.append(tr);
+  }
   $("buyVal").textContent = fmt(c.buyVal);
   $("sellVal").textContent = fmt(sel.price * s.qty);
   renderFees($("buyFees"), c.buyFees);
@@ -375,7 +406,7 @@ $("save").onclick = async () => {
 };
 
 $("resetRates").onclick = () => { rates = {...DEFAULT_RATES}; renderRates(); saveSettings(); render(); };
-for (const id of ["name", "qty", "price"]) $(id).addEventListener("input", render);
+for (const id of ["name", "qty", "price", "steps"]) $(id).addEventListener("input", render);
 for (const id of ["plan", "t0", "tick", "fills"]) $(id).addEventListener("input", () => { saveSettings(); render(); });
 
 // Start from browser storage, then switch to the account store if it's available.
